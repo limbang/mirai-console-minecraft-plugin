@@ -18,5 +18,5 @@ repositories {
 
 dependencies {
     testImplementation("junit:junit:4.12")
-    implementation("top.limbang:doctor:1.0.0")
+    implementation("top.limbang:doctor-all:+")
 }
