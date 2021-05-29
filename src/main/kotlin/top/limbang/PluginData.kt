@@ -9,15 +9,32 @@ import net.mamoe.mirai.console.data.value
  *
  * - [address] 服务器地址
  * - [port] 服务器端口
+ * - [loginInfo] 登陆信息
  */
 @Serializable
-data class ServerAddress(val address: String, val port: Int)
+data class ServerAddress(val address: String, val port: Int, val loginInfo: LoginInfo)
 
 
+/**
+ * ### 登陆信息
+ *
+ * - [authServerUrl] 验证地址
+ * - [sessionServerUrl] 会话地址
+ * - [username] 用户名
+ * - [password] 密码 base64 加密过的
+ */
+@Serializable
+data class LoginInfo(
+    val authServerUrl: String,
+    val sessionServerUrl: String,
+    val username: String,
+    val password: String
+)
 
 /**
  * ### 插件配置
  */
 object PluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
+    var loginMap: MutableMap<Long, LoginInfo> by value()
 }

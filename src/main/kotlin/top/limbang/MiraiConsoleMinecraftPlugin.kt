@@ -34,13 +34,32 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
         PluginCompositeCommand.register()
         globalEventChannel().subscribeGroupMessages {
             startsWith("!") {
-                pingServer(group, it, sender)
+                handle(group, it, sender)
             }
             startsWith("！") {
-                pingServer(group, it, sender)
+                handle(group, it, sender)
             }
         }
     }
+
+    private suspend fun handle(group: Group, mgs: String, sender: Member) {
+        if (!mgs.endsWith("tps"))
+            pingServer(group, mgs, sender)
+        else
+            getTps(group, mgs.substringBefore("tps").trim(), sender)
+    }
+
+    private suspend fun getTps(group: Group, mgs: String, sender: Member) {
+        val serverInfo = PluginData.serverMap[mgs]!!
+
+        val client = MinecraftClient()
+            .user(serverInfo.loginInfo.username, serverInfo.loginInfo.password)
+            .authServerUrl(serverInfo.loginInfo.authServerUrl)
+            .sessionServerUrl(serverInfo.loginInfo.sessionServerUrl)
+            .start(serverInfo.address, serverInfo.port)
+
+    }
+
 
     private val errorMsgList = listOf(
         "希望睡醒服务器就好了.",
