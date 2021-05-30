@@ -1,5 +1,6 @@
 package top.limbang
 
+import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
@@ -11,9 +12,19 @@ import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
 import net.mamoe.mirai.message.data.At
 import top.limbang.doctor.client.MinecraftClient
-import top.limbang.doctor.client.entity.ServiceInfo
-import top.limbang.doctor.client.utils.ServiceInfoUtils
+import top.limbang.doctor.client.entity.ServerInfo
+import top.limbang.doctor.client.event.ChatEvent
+import top.limbang.doctor.client.event.JoinGameEvent
+import top.limbang.doctor.client.running.TpsEntity
+import top.limbang.doctor.client.running.TpsUtils
+import top.limbang.doctor.client.utils.ServerInfoUtils
+import top.limbang.doctor.network.event.ConnectionEvent
+import top.limbang.doctor.network.handler.onPacket
+import top.limbang.doctor.protocol.definition.play.client.DisconnectPacket
+import top.limbang.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
+import top.limbang.doctor.protocol.entity.text.ChatGsonSerializer
 import top.limbang.utils.ImageErrorMessage
+import java.util.*
 
 
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
@@ -49,15 +60,53 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
             getTps(group, mgs.substringBefore("tps").trim(), sender)
     }
 
-    private suspend fun getTps(group: Group, mgs: String, sender: Member) {
+    private fun getTps(group: Group, mgs: String, sender: Member) {
         val serverInfo = PluginData.serverMap[mgs]!!
 
+        val decode = Base64.getDecoder()
+        val password = String(decode.decode(serverInfo.loginInfo.password))
         val client = MinecraftClient()
-            .user(serverInfo.loginInfo.username, serverInfo.loginInfo.password)
+            .user(serverInfo.loginInfo.username,password)
             .authServerUrl(serverInfo.loginInfo.authServerUrl)
             .sessionServerUrl(serverInfo.loginInfo.sessionServerUrl)
             .start(serverInfo.address, serverInfo.port)
 
+        val tpsList = mutableListOf<TpsEntity>()
+
+        client.on(ChatEvent) {
+            if (it.chatPacket.json.contains("commands.forge.tps.summary")) {
+                val tpsEntity = TpsUtils.parseTpsEntity(it.chatPacket.json)
+                tpsList.add(tpsEntity)
+                if (tpsEntity.dim != "Overall") return@on
+
+                var outMsg = "[XX服务器]低于20TPS如下:\n"
+                tpsList.filterIndexed { index, tpsEntity ->
+                    val dim = tpsEntity.dim.substringBetween("Dim", "(").trim()
+                    outMsg += when {
+                        index == tpsList.size - 1 -> {
+                            "\n全局TPS:${tpsEntity.tps} Tick时间:${tpsEntity.tickTime}\n"
+                        }
+                        tpsEntity.tps < 20 -> "TPS:%-4.4s 维度:%s\n".format(tpsEntity.tps, dim)
+                        else -> ""
+                    }
+                    true
+                }
+                println(outMsg)
+                it.connection.close()
+            }
+        }.once(JoinGameEvent) {
+            logger.info("登陆成功")
+        }.onPacket<PlayerPositionAndLookPacket> {
+            client.sendMessage("/forge tps")
+        }
+
+
+    }
+
+    private fun sendMessage(group: Group, message: String) {
+        launch {
+            group.sendMessage(message)
+        }
     }
 
 
@@ -73,19 +122,16 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     private suspend fun pingServer(group: Group, mgs: String, sender: Member) {
         if (mgs.isEmpty()) return
         val serverInfo = PluginData.serverMap[mgs] ?: return
-        val serverListInfo: ServiceInfo
+        val serverListInfo: ServerInfo
         try {
             val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get()
-            serverListInfo = ServiceInfoUtils.getServiceInfo(json)
+            if(json == null){
+                sendErrorImage(group,mgs,sender)
+                return
+            }
+            serverListInfo = ServerInfoUtils.getServiceInfo(json)
         } catch (e: Exception) {
-            val randoms = (0..5).random()
-            val sendMgs = sender.nameCard + errorMsgList[randoms]
-            val image =
-                ImageErrorMessage.createImage(
-                    MiraiConsoleMinecraftPlugin.getResourceAsStream("$randoms.jpg")!!,
-                    sendMgs
-                )
-            group.sendImage(image)
+            sendErrorImage(group,mgs,sender)
             return
         }
         var sampleName = ""
@@ -108,6 +154,17 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
                 "服务器列表:$serverList"
 
         group.sendMessage(At(sender).plus(sendMgs))
+    }
+
+    private suspend fun sendErrorImage(group: Group, mgs: String, sender: Member){
+        val randoms = (0..5).random()
+        val sendMgs = sender.nameCard + errorMsgList[randoms]
+        val image =
+            ImageErrorMessage.createImage(
+                MiraiConsoleMinecraftPlugin.getResourceAsStream("$randoms.jpg")!!,
+                sendMgs
+            )
+        group.sendImage(image)
     }
 }
 

@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     testImplementation("junit:junit:4.12")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
-    implementation("top.limbang:doctor-all:+")
+    testImplementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("com.google.code.gson:gson:2.8.6")
+    implementation("top.limbang:doctor-all:1.0.5")
 }
