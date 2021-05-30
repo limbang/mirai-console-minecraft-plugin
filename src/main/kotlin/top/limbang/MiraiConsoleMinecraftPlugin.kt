@@ -18,11 +18,9 @@ import top.limbang.doctor.client.event.JoinGameEvent
 import top.limbang.doctor.client.running.TpsEntity
 import top.limbang.doctor.client.running.TpsUtils
 import top.limbang.doctor.client.utils.ServerInfoUtils
-import top.limbang.doctor.network.event.ConnectionEvent
+import top.limbang.doctor.client.utils.substringBetween
 import top.limbang.doctor.network.handler.onPacket
-import top.limbang.doctor.protocol.definition.play.client.DisconnectPacket
 import top.limbang.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
-import top.limbang.doctor.protocol.entity.text.ChatGsonSerializer
 import top.limbang.utils.ImageErrorMessage
 import java.util.*
 
@@ -61,7 +59,7 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     }
 
     private fun getTps(group: Group, mgs: String, sender: Member) {
-        val serverInfo = PluginData.serverMap[mgs]!!
+        val serverInfo = PluginData.serverMap[mgs] ?: return
 
         val decode = Base64.getDecoder()
         val password = String(decode.decode(serverInfo.loginInfo.password))
@@ -79,23 +77,23 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
                 tpsList.add(tpsEntity)
                 if (tpsEntity.dim != "Overall") return@on
 
-                var outMsg = "[XX服务器]低于20TPS如下:\n"
+                var outMsg = "[$mgs]低于20TPS的维度如下:\n"
                 tpsList.filterIndexed { index, tpsEntity ->
                     val dim = tpsEntity.dim.substringBetween("Dim", "(").trim()
                     outMsg += when {
                         index == tpsList.size - 1 -> {
-                            "\n全局TPS:${tpsEntity.tps} Tick时间:${tpsEntity.tickTime}\n"
+                            "\n全局TPS:${tpsEntity.tps} Tick时间:${tpsEntity.tickTime}"
                         }
                         tpsEntity.tps < 20 -> "TPS:%-4.4s 维度:%s\n".format(tpsEntity.tps, dim)
                         else -> ""
                     }
                     true
                 }
-                println(outMsg)
-                it.connection.close()
+                sendMessage(group,outMsg)
+                client.stop()
             }
         }.once(JoinGameEvent) {
-            logger.info("登陆成功")
+            sendMessage(group,"登陆成功，开始发送 forge tps 指令")
         }.onPacket<PlayerPositionAndLookPacket> {
             client.sendMessage("/forge tps")
         }
