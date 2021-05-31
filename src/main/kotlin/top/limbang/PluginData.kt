@@ -37,4 +37,5 @@ data class LoginInfo(
 object PluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
     var loginMap: MutableMap<Long, LoginInfo> by value()
+    var adminMap : MutableMap<Long, MutableList<Long>> by value()
 }

@@ -4,6 +4,7 @@ import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.UserCommandSender
 import net.mamoe.mirai.console.command.getGroupOrNull
+import net.mamoe.mirai.contact.User
 
 
 /**
@@ -13,6 +14,22 @@ object PluginCompositeCommand : CompositeCommand(
     MiraiConsoleMinecraftPlugin, "mc",
     description = "添加删除服务器",
 ) {
+    @SubCommand("admin", "登陆")
+    suspend fun UserCommandSender.admin(user: User) {
+        val group = getGroupOrNull()
+        if (group == null) {
+            sendMessage("本条消息只能在群配置.")
+            return
+        }
+
+        PluginData.adminMap[group.id]?.add(user.id)
+        if (PluginData.adminMap[group.id] == null){
+            PluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
+        }
+
+        sendMessage("[${group.id}]群管理配置添加成功.")
+    }
+
     @SubCommand("login", "登陆")
     suspend fun UserCommandSender.login(
         authServerUrl: String, sessionServerUrl: String, username: String, password: String
