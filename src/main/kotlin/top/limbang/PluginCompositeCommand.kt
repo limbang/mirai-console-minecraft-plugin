@@ -14,7 +14,7 @@ object PluginCompositeCommand : CompositeCommand(
     MiraiConsoleMinecraftPlugin, "mc",
     description = "添加删除服务器",
 ) {
-    @SubCommand("admin", "登陆")
+    @SubCommand("admin", "管理")
     suspend fun UserCommandSender.admin(user: User) {
         val group = getGroupOrNull()
         if (group == null) {
