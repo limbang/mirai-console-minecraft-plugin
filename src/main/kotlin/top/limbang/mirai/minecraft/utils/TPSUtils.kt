@@ -1,9 +1,7 @@
-package top.limbang.utils
+package top.limbang.mirai.minecraft.utils
 
 
 import net.mamoe.mirai.contact.Group
-import top.limbang.MiraiConsoleMinecraftPlugin
-import top.limbang.PluginData
 import top.limbang.doctor.client.MinecraftClient
 import top.limbang.doctor.client.event.ChatEvent
 import top.limbang.doctor.client.event.JoinGameEvent
@@ -12,12 +10,14 @@ import top.limbang.doctor.client.running.TpsUtils
 import top.limbang.doctor.client.utils.substringBetween
 import top.limbang.doctor.network.handler.onPacket
 import top.limbang.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
+import top.limbang.mirai.minecraft.MinecraftPluginData
+import top.limbang.mirai.minecraft.MiraiConsoleMinecraftPlugin
 import java.util.*
 
 object TPSUtils {
 
     fun getTps(group: Group, mgs: String) {
-        val serverInfo = PluginData.serverMap[mgs] ?: return
+        val serverInfo = MinecraftPluginData.serverMap[mgs] ?: return
 
         val decode = Base64.getDecoder()
         val password = String(decode.decode(serverInfo.loginInfo.password))

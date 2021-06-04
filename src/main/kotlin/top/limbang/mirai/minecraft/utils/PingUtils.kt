@@ -1,4 +1,4 @@
-package top.limbang.utils
+package top.limbang.mirai.minecraft.utils
 
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
 import net.mamoe.mirai.contact.Group
@@ -6,11 +6,11 @@ import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
-import top.limbang.MiraiConsoleMinecraftPlugin
-import top.limbang.PluginData
 import top.limbang.doctor.client.MinecraftClient
 import top.limbang.doctor.client.entity.ServerInfo
 import top.limbang.doctor.client.utils.ServerInfoUtils
+import top.limbang.mirai.minecraft.MinecraftPluginData
+import top.limbang.mirai.minecraft.MiraiConsoleMinecraftPlugin
 
 object PingUtils {
     private val errorMsgList = listOf(
@@ -24,17 +24,17 @@ object PingUtils {
 
     suspend fun pingServer(group: Group, mgs: String, sender: Member) {
         if (mgs.isEmpty()) return
-        val serverInfo = PluginData.serverMap[mgs] ?: return
+        val serverInfo = MinecraftPluginData.serverMap[mgs] ?: return
         val serverListInfo: ServerInfo
         try {
             val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get()
             if (json == null) {
-                sendErrorImage(group, mgs, sender)
+                sendErrorImage(group, sender)
                 return
             }
             serverListInfo = ServerInfoUtils.getServiceInfo(json)
         } catch (e: Exception) {
-            sendErrorImage(group, mgs, sender)
+            sendErrorImage(group, sender)
             return
         }
         var sampleName = ""
@@ -43,7 +43,7 @@ object PingUtils {
         }
 
         var serverList = ""
-        PluginData.serverMap.forEach {
+        MinecraftPluginData.serverMap.forEach {
             serverList += "[${it.key}] "
         }
 
@@ -59,7 +59,7 @@ object PingUtils {
         group.sendMessage(At(sender).plus(sendMgs))
     }
 
-    private suspend fun sendErrorImage(group: Group, mgs: String, sender: Member) {
+    private suspend fun sendErrorImage(group: Group, sender: Member) {
         val randoms = (0..5).random()
         val sendMgs = sender.nameCard + errorMsgList[randoms]
         val image =
@@ -69,7 +69,7 @@ object PingUtils {
             )
         group.sendImage(image)
 
-        val adminList = PluginData.adminMap[group.id] ?: return
+        val adminList = MinecraftPluginData.adminMap[group.id] ?: return
         group.sendMessage(buildMessageChain{
             +PlainText("大召唤术~~ (╬▔皿▔)╯")
             adminList.forEach {

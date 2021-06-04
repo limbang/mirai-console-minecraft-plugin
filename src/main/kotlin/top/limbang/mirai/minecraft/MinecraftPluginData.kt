@@ -1,4 +1,4 @@
-package top.limbang
+package top.limbang.mirai.minecraft
 
 import kotlinx.serialization.Serializable
 import net.mamoe.mirai.console.data.AutoSavePluginData
@@ -34,7 +34,7 @@ data class LoginInfo(
 /**
  * ### 插件配置
  */
-object PluginData : AutoSavePluginData("minecraft") {
+object MinecraftPluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
     var loginMap: MutableMap<Long, LoginInfo> by value()
     var adminMap : MutableMap<Long, MutableList<Long>> by value()

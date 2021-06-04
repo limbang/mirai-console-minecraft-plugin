@@ -1,4 +1,4 @@
-package top.limbang
+package top.limbang.mirai.minecraft
 
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
@@ -9,8 +9,8 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
-import top.limbang.utils.PingUtils
-import top.limbang.utils.TPSUtils
+import top.limbang.mirai.minecraft.utils.PingUtils
+import top.limbang.mirai.minecraft.utils.TPSUtils
 
 
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
@@ -23,12 +23,12 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     }
 ) {
     override fun onDisable() {
-        PluginCompositeCommand.unregister()
+        MinecraftPluginCompositeCommand.unregister()
     }
 
     override fun onEnable() {
-        PluginData.reload()
-        PluginCompositeCommand.register()
+        MinecraftPluginData.reload()
+        MinecraftPluginCompositeCommand.register()
         globalEventChannel().subscribeGroupMessages {
             startsWith("!") {
                 handle(group, it, sender)

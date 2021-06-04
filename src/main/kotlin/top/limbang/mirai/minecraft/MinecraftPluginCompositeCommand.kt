@@ -1,4 +1,4 @@
-package top.limbang
+package top.limbang.mirai.minecraft
 
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
@@ -10,7 +10,7 @@ import net.mamoe.mirai.contact.User
 /**
  * ### 插件指令
  */
-object PluginCompositeCommand : CompositeCommand(
+object MinecraftPluginCompositeCommand : CompositeCommand(
     MiraiConsoleMinecraftPlugin, "mc",
     description = "添加删除服务器",
 ) {
@@ -22,9 +22,9 @@ object PluginCompositeCommand : CompositeCommand(
             return
         }
 
-        PluginData.adminMap[group.id]?.add(user.id)
-        if (PluginData.adminMap[group.id] == null){
-            PluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
+        MinecraftPluginData.adminMap[group.id]?.add(user.id)
+        if (MinecraftPluginData.adminMap[group.id] == null){
+            MinecraftPluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
         }
 
         sendMessage("[${group.id}]群管理配置添加成功.")
@@ -40,7 +40,7 @@ object PluginCompositeCommand : CompositeCommand(
             return
         }
         LoginInfo(authServerUrl, sessionServerUrl, username, password)
-            .also { PluginData.loginMap[group.id] = it }
+            .also { MinecraftPluginData.loginMap[group.id] = it }
         sendMessage("[${group.id}]群默认登陆配置添加成功.")
     }
 
@@ -52,13 +52,13 @@ object PluginCompositeCommand : CompositeCommand(
             return
         }
 
-        val loginInfo = PluginData.loginMap[group.id]
+        val loginInfo = MinecraftPluginData.loginMap[group.id]
         if (loginInfo == null) {
             sendMessage("[${group.id}]该群未添加默认的登陆信息.")
             return
         }
 
-        PluginData.serverMap[name] = ServerAddress(address, port, loginInfo)
+        MinecraftPluginData.serverMap[name] = ServerAddress(address, port, loginInfo)
         sendMessage("服务器[$name]添加成功.")
     }
 
@@ -68,7 +68,7 @@ object PluginCompositeCommand : CompositeCommand(
         authServerUrl: String, sessionServerUrl: String,
         username: String, password: String
     ) {
-        PluginData.serverMap[name] = ServerAddress(
+        MinecraftPluginData.serverMap[name] = ServerAddress(
             address, port, LoginInfo(
                 authServerUrl, sessionServerUrl, username, password
             )
@@ -78,7 +78,7 @@ object PluginCompositeCommand : CompositeCommand(
 
     @SubCommand("delete", "删除")
     suspend fun CommandSender.delete(name: String) {
-        if (PluginData.serverMap.keys.remove(name)) {
+        if (MinecraftPluginData.serverMap.keys.remove(name)) {
             sendMessage("服务器[$name]删除成功.")
         } else {
             sendMessage("服务器[$name]删除失败.")
@@ -87,12 +87,12 @@ object PluginCompositeCommand : CompositeCommand(
 
     @SubCommand("list", "列表")
     suspend fun CommandSender.list() {
-        if (PluginData.serverMap.isEmpty()) {
+        if (MinecraftPluginData.serverMap.isEmpty()) {
             sendMessage("无服务器列表...")
             return
         }
         var names = ""
-        for ((name, address) in PluginData.serverMap) {
+        for ((name, address) in MinecraftPluginData.serverMap) {
             names += "[$name]地址:${address.address} 端口:${address.port}\n"
         }
         sendMessage("服务器列表为:\n$names")

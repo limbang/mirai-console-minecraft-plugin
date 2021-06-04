@@ -1,4 +1,4 @@
-package top.limbang.utils
+package top.limbang.mirai.minecraft.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,9 +34,9 @@ object ImageErrorMessage {
         val g2d = bufImg.createGraphics()
         g2d.drawImage(srcImg, 0, 0, srcImg.width, srcImg.height, null)
 
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE)
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY)
 
         val font = Font("微软雅黑", Font.PLAIN, 32)
         val vector = font.createGlyphVector(g2d.fontRenderContext, errorMsg)
@@ -46,7 +46,7 @@ object ImageErrorMessage {
             (srcImg.width - bounds.width) / 2 - bounds.x,
             (srcImg.height - bounds.height) - (bounds.y / 2)
         )
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g2d.stroke = BasicStroke(3.0F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         g2d.color = Color(63, 63, 63, 150)
         g2d.draw(shape)
