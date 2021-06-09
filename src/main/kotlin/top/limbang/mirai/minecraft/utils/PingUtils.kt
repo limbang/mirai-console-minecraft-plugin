@@ -11,6 +11,7 @@ import top.limbang.doctor.client.entity.ServerInfo
 import top.limbang.doctor.client.utils.ServerInfoUtils
 import top.limbang.mirai.minecraft.MinecraftPluginData
 import top.limbang.mirai.minecraft.MiraiConsoleMinecraftPlugin
+import java.util.concurrent.TimeUnit
 
 object PingUtils {
     private val errorMsgList = listOf(
@@ -27,7 +28,7 @@ object PingUtils {
         val serverInfo = MinecraftPluginData.serverMap[mgs] ?: return
         val serverListInfo: ServerInfo
         try {
-            val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get()
+            val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get(2000, TimeUnit.MILLISECONDS)
             if (json == null) {
                 sendErrorImage(group, sender)
                 return
@@ -70,7 +71,7 @@ object PingUtils {
         group.sendImage(image)
 
         val adminList = MinecraftPluginData.adminMap[group.id] ?: return
-        group.sendMessage(buildMessageChain{
+        group.sendMessage(buildMessageChain {
             +PlainText("大召唤术~~ (╬▔皿▔)╯")
             adminList.forEach {
                 add(At(it))

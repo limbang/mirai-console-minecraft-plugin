@@ -43,7 +43,7 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
         if (!mgs.endsWith("tps"))
             PingUtils.pingServer(group, mgs, sender)
         else
-            TPSUtils.getTps(group, mgs.substringBefore("tps").trim())
+            TPSUtils.getTps(group, mgs.substringBefore("tps").trim(),sender)
     }
 
     fun sendMessage(group: Group, message: String) {
