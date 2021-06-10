@@ -14,21 +14,41 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
     MiraiConsoleMinecraftPlugin, "mc",
     description = "添加删除服务器",
 ) {
-    @SubCommand("admin", "管理")
-    suspend fun UserCommandSender.admin(user: User) {
+    @SubCommand("addErrorAt", "添加错误At")
+    suspend fun UserCommandSender.addErrorAt(user: User) {
         val group = getGroupOrNull()
         if (group == null) {
             sendMessage("本条消息只能在群配置.")
             return
         }
+        val mutableList = MinecraftPluginData.adminMap[group.id]
+        mutableList?.firstOrNull{it == user.id} ?: mutableList?.add(user.id)
 
-        MinecraftPluginData.adminMap[group.id]?.add(user.id)
-        if (MinecraftPluginData.adminMap[group.id] == null){
+        if (mutableList == null){
             MinecraftPluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
         }
 
-        sendMessage("[${group.id}]群管理配置添加成功.")
+        sendMessage("[${group.id}]群错误@提醒配置添加成功.")
     }
+
+    @SubCommand("deleteErrorAt", "删除错误At")
+    suspend fun UserCommandSender.deleteErrorAt(user: User) {
+        val group = getGroupOrNull()
+        if (group == null) {
+            sendMessage("本条消息只能在群配置.")
+            return
+        }
+        val mutableList =MinecraftPluginData.adminMap[group.id]
+
+        if(mutableList != null){
+            if(mutableList.remove(user.id)){
+                sendMessage("[${group.id}]群错误@提醒配置删除成功.")
+                return
+            }
+        }
+        sendMessage("[${group.id}]群未找到[${user.id}]用户.")
+    }
+
 
     @SubCommand("login", "登陆")
     suspend fun UserCommandSender.login(
