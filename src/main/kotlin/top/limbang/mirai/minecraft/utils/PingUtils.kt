@@ -28,7 +28,7 @@ object PingUtils {
         val serverInfo = MinecraftPluginData.serverMap[mgs] ?: return
         val serverListInfo: ServerInfo
         try {
-            val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get(2000, TimeUnit.MILLISECONDS)
+            val json = MinecraftClient.ping(serverInfo.address, serverInfo.port).get(3000, TimeUnit.MILLISECONDS)
             if (json == null) {
                 sendErrorImage(group, sender)
                 return

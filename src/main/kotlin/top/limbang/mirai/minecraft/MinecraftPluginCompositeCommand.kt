@@ -22,9 +22,9 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
             return
         }
         val mutableList = MinecraftPluginData.adminMap[group.id]
-        mutableList?.firstOrNull{it == user.id} ?: mutableList?.add(user.id)
+        mutableList?.firstOrNull { it == user.id } ?: mutableList?.add(user.id)
 
-        if (mutableList == null){
+        if (mutableList == null) {
             MinecraftPluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
         }
 
@@ -38,10 +38,10 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
             sendMessage("本条消息只能在群配置.")
             return
         }
-        val mutableList =MinecraftPluginData.adminMap[group.id]
+        val mutableList = MinecraftPluginData.adminMap[group.id]
 
-        if(mutableList != null){
-            if(mutableList.remove(user.id)){
+        if (mutableList != null) {
+            if (mutableList.remove(user.id)) {
                 sendMessage("[${group.id}]群错误@提醒配置删除成功.")
                 return
             }
@@ -107,14 +107,6 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
 
     @SubCommand("list", "列表")
     suspend fun CommandSender.list() {
-        if (MinecraftPluginData.serverMap.isEmpty()) {
-            sendMessage("无服务器列表...")
-            return
-        }
-        var names = ""
-        for ((name, address) in MinecraftPluginData.serverMap) {
-            names += "[$name]地址:${address.address} 端口:${address.port}\n"
-        }
-        sendMessage("服务器列表为:\n$names")
+        sendMessage(MiraiConsoleMinecraftPlugin.getServerList())
     }
 }
