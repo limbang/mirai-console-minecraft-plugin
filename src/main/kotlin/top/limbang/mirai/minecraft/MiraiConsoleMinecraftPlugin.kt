@@ -17,7 +17,7 @@ import top.limbang.mirai.minecraft.utils.TPSUtils
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.mirai-console-minecraft-plugin",
-        version = "1.0.3",
+        version = "1.0.4",
     ) {
         author("limbang")
         info("""Minecraft""")

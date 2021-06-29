@@ -71,6 +71,7 @@ object PingUtils {
         group.sendImage(image)
 
         val adminList = MinecraftPluginData.adminMap[group.id] ?: return
+        if (adminList.size <= 0) return
         group.sendMessage(buildMessageChain {
             +PlainText("大召唤术~~ (╬▔皿▔)╯")
             adminList.forEach {
