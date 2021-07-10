@@ -12,7 +12,7 @@ import net.mamoe.mirai.console.data.value
  * - [loginInfo] 登陆信息
  */
 @Serializable
-data class ServerAddress(val address: String, val port: Int, val loginInfo: LoginInfo)
+data class ServerAddress(val address: String, val port: Int, val loginInfo: LoginInfo?)
 
 
 /**
@@ -36,6 +36,5 @@ data class LoginInfo(
  */
 object MinecraftPluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
-    var loginMap: MutableMap<Long, LoginInfo> by value()
-    var adminMap : MutableMap<Long, MutableList<Long>> by value()
+    var loginMap: MutableMap<String, LoginInfo> by value()
 }

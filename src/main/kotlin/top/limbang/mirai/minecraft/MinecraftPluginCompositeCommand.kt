@@ -4,77 +4,63 @@ import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.UserCommandSender
 import net.mamoe.mirai.console.command.getGroupOrNull
-import net.mamoe.mirai.contact.User
+import top.limbang.mirai.minecraft.service.ServerService.getServerList
 
 
 /**
  * ### 插件指令
  */
 object MinecraftPluginCompositeCommand : CompositeCommand(
-    MiraiConsoleMinecraftPlugin, "mc",
-    description = "添加删除服务器",
+    MiraiConsoleMinecraftPlugin, "mc"
 ) {
-    @SubCommand("addErrorAt", "添加错误At")
-    suspend fun UserCommandSender.addErrorAt(user: User) {
-        val group = getGroupOrNull()
-        if (group == null) {
-            sendMessage("本条消息只能在群配置.")
-            return
-        }
-        val mutableList = MinecraftPluginData.adminMap[group.id]
-        mutableList?.firstOrNull { it == user.id } ?: mutableList?.add(user.id)
 
-        if (mutableList == null) {
-            MinecraftPluginData.adminMap[group.id] = mutableListOf<Long>().also { it.add(user.id) }
+    @SubCommand
+    suspend fun CommandSender.loginInfo() {
+        var loginInfo = ""
+        MinecraftPluginData.loginMap.forEach {
+            loginInfo += "[${it.key}] "
         }
-
-        sendMessage("[${group.id}]群错误@提醒配置添加成功.")
+        if (loginInfo.isEmpty())
+            sendMessage("无登陆信息...")
+        else
+            sendMessage("登陆配置信息名称:$loginInfo")
     }
 
-    @SubCommand("deleteErrorAt", "删除错误At")
-    suspend fun UserCommandSender.deleteErrorAt(user: User) {
-        val group = getGroupOrNull()
-        if (group == null) {
-            sendMessage("本条消息只能在群配置.")
-            return
-        }
-        val mutableList = MinecraftPluginData.adminMap[group.id]
-
-        if (mutableList != null) {
-            if (mutableList.remove(user.id)) {
-                sendMessage("[${group.id}]群错误@提醒配置删除成功.")
-                return
-            }
-        }
-        sendMessage("[${group.id}]群未找到[${user.id}]用户.")
-    }
-
-
-    @SubCommand("login", "登陆")
-    suspend fun UserCommandSender.login(
-        authServerUrl: String, sessionServerUrl: String, username: String, password: String
+    @SubCommand
+    suspend fun UserCommandSender.addLogin(
+        name: String, authServerUrl: String, sessionServerUrl: String, username: String, password: String
     ) {
         val group = getGroupOrNull()
-        if (group == null) {
-            sendMessage("本条消息只能在群配置.")
+        if (group != null) {
+            sendMessage("此配置不能在群配置.")
             return
         }
         LoginInfo(authServerUrl, sessionServerUrl, username, password)
-            .also { MinecraftPluginData.loginMap[group.id] = it }
-        sendMessage("[${group.id}]群默认登陆配置添加成功.")
+            .also { MinecraftPluginData.loginMap[name] = it }
+        sendMessage("[$name]登陆配置添加成功.")
     }
 
-    @SubCommand("add", "添加")
-    suspend fun UserCommandSender.add(name: String, address: String, port: Int) {
-        val group = getGroupOrNull()
-        if (group == null) {
-            sendMessage("本条消息只能在群配置.")
-            return
+    @SubCommand
+    suspend fun CommandSender.deleteLogin(name: String) {
+        if (MinecraftPluginData.loginMap.keys.remove(name)) {
+            sendMessage("登陆配置[$name]删除成功.")
+        } else {
+            sendMessage("登陆配置[$name]删除失败.")
         }
+    }
 
-        val loginInfo = MinecraftPluginData.loginMap[group.id]
+    @SubCommand
+    suspend fun UserCommandSender.add(name: String, address: String, port: Int) {
+        MinecraftPluginData.serverMap[name] = ServerAddress(address, port, null)
+        sendMessage("服务器[$name]添加成功.")
+    }
+
+    @SubCommand
+    suspend fun UserCommandSender.add(name: String, address: String, port: Int, loginName: String) {
+
+        val loginInfo = MinecraftPluginData.loginMap[loginName]
         if (loginInfo == null) {
-            sendMessage("[${group.id}]该群未添加默认的登陆信息.")
+            sendMessage("[$loginName]该登陆信息尚未配置.")
             return
         }
 
@@ -82,21 +68,7 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
         sendMessage("服务器[$name]添加成功.")
     }
 
-    @SubCommand("add", "添加")
-    suspend fun CommandSender.add(
-        name: String, address: String, port: Int,
-        authServerUrl: String, sessionServerUrl: String,
-        username: String, password: String
-    ) {
-        MinecraftPluginData.serverMap[name] = ServerAddress(
-            address, port, LoginInfo(
-                authServerUrl, sessionServerUrl, username, password
-            )
-        )
-        sendMessage("服务器[$name]添加成功.")
-    }
-
-    @SubCommand("delete", "删除")
+    @SubCommand
     suspend fun CommandSender.delete(name: String) {
         if (MinecraftPluginData.serverMap.keys.remove(name)) {
             sendMessage("服务器[$name]删除成功.")
@@ -105,8 +77,8 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
         }
     }
 
-    @SubCommand("list", "列表")
+    @SubCommand
     suspend fun CommandSender.list() {
-        sendMessage(MiraiConsoleMinecraftPlugin.getServerList())
+        sendMessage(getServerList())
     }
 }

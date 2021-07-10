@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "top.limbang"
-version = "1.0.4"
+version = "1.1.0"
 
 repositories {
 
@@ -17,7 +17,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.12")
+    implementation("top.limbang.doctor:doctor-client:1.2.6")
     testImplementation("org.slf4j:slf4j-simple:1.7.30")
-    implementation("top.limbang.doctor:doctor-client:1.2.3")
 }
