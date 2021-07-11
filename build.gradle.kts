@@ -17,6 +17,6 @@ repositories {
 }
 
 dependencies {
-    implementation("top.limbang.doctor:doctor-client:1.2.6")
+    implementation("top.limbang.doctor:doctor-client:1.2.7")
     testImplementation("org.slf4j:slf4j-simple:1.7.30")
 }
