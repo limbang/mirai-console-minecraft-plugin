@@ -5,6 +5,7 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
@@ -17,7 +18,7 @@ import top.limbang.mirai.minecraft.service.ServerService.pingServer
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.mirai-console-minecraft-plugin",
-        version = "1.1.0",
+        version = "1.1.1",
     ) {
         author("limbang")
     }
@@ -38,7 +39,7 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
                     getTPS(mgs.substringBefore("tps").trim(),group,sender.nameCard)
                     Unit
                 } else {
-                    pingServer(mgs) ?: createErrorImage(sender.nameCard)
+                    pingServer(mgs) ?: group.uploadImage(createErrorImage(sender.nameCard),"jpg")
                 }
             }
         }
