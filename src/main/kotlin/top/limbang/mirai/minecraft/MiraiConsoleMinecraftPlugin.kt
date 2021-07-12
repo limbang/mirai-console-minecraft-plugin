@@ -6,6 +6,7 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
+import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
@@ -36,10 +37,10 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
                 val mgs = it.substring(1)
                 if (mgs == "list" || mgs == "列表") getServerList()
                 else if (mgs.endsWith("tps")) {
-                    getTPS(mgs.substringBefore("tps").trim(),group,sender.nameCard)
+                    getTPS(mgs.substringBefore("tps").trim(),group,sender.nameCardOrNick)
                     Unit
                 } else {
-                    pingServer(mgs) ?: group.uploadImage(createErrorImage(sender.nameCard),"jpg")
+                    pingServer(mgs) ?: group.uploadImage(createErrorImage(sender.nameCardOrNick),"jpg")
                 }
             }
         }
