@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit
 
 object ServerService {
 
-    fun pingServer(name: String): String? {
-        if (name.isEmpty()) return null
-        val serverInfo = MinecraftPluginData.serverMap[name] ?: return null
+    fun pingServer(name: String): Any? {
+        if (name.isEmpty()) return Unit
+        val serverInfo = MinecraftPluginData.serverMap[name] ?: return Unit
         val serverListInfo = try {
             val json = MinecraftClient.ping(serverInfo.address, serverInfo.port)
                 .get(5000, TimeUnit.MILLISECONDS) ?: return null
