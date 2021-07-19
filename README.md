@@ -32,15 +32,16 @@ mc addLogin url参考 [yggdrasil](https://github.com/yushijinhun/authlib-injecto
 - username 账号
 - password 密码
 
-
-
+```shell
+# 设置触发指令
+/mc setCommand <name> <command>  
 ```
-Minecraft 插件使用说明:
-!为中英文通用,!和服务器名称之间可以有空格,和tps之间也一样
-Ping服务器:!前缀加服务器名称,如!服务器名称
-TPS:!前缀加服务器名称,tps结尾,如!服务器名称tps
-查看服务器列表:!list 或 !列表
-```
+name 可设置如下
+ - PING `ping服务器`
+ - LIST `查询列表`
+ - TPS `查询tps`
+ - PING_ALL `ping全部服务器`
+
 
 ## 版本支持
 

@@ -3,8 +3,15 @@ package top.limbang.mirai.minecraft.service
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
+import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.Member
+import net.mamoe.mirai.contact.nameCardOrNick
+import net.mamoe.mirai.message.data.ForwardMessageBuilder
+import net.mamoe.mirai.message.data.Message
+import net.mamoe.mirai.message.data.PlainText
 import top.limbang.doctor.client.MinecraftClient
+import top.limbang.doctor.client.entity.ServerInfo
 import top.limbang.doctor.client.running.AutoVersionForgePlugin
 import top.limbang.doctor.client.running.TpsPlugin
 import top.limbang.doctor.client.running.tpsTools
@@ -20,32 +27,55 @@ import java.util.concurrent.TimeUnit
 
 object ServerService {
 
+    suspend fun pingALlServer(sender: Member, group: Group): Message {
+        val builder = ForwardMessageBuilder(group)
+        MinecraftPluginData.serverMap.forEach {
+            try {
+                val json = MinecraftClient.ping(it.value.address, it.value.port).get(5000, TimeUnit.MILLISECONDS)
+                val serverInfo = ServerInfoUtils.getServiceInfo(json)
+                builder.add(group.bot, PlainText(serverInfoToString(it.key, serverInfo)))
+            } catch (e: Exception) {
+                builder.add(
+                    group.bot, PlainText("[${it.key}]服务器连接失败...\n").plus(
+                        group.uploadImage(ImageService.createErrorImage(sender.nameCardOrNick), "jpg")
+                    )
+                )
+            }
+        }
+        return builder.build()
+    }
+
     fun pingServer(name: String): Any? {
         if (name.isEmpty()) return Unit
-        val serverInfo = MinecraftPluginData.serverMap[name] ?: return Unit
-        val serverListInfo = try {
-            val json = MinecraftClient.ping(serverInfo.address, serverInfo.port)
+        val server = MinecraftPluginData.serverMap[name] ?: return Unit
+        val serverInfo = try {
+            val json = MinecraftClient.ping(server.address, server.port)
                 .get(5000, TimeUnit.MILLISECONDS) ?: return null
             ServerInfoUtils.getServiceInfo(json)
         } catch (e: Exception) {
             return null
         }
 
+        return serverInfoToString(name, serverInfo)
+    }
+
+    private fun serverInfoToString(name: String, serverInfo: ServerInfo): String {
         var sampleName = ""
-        serverListInfo.playerNameList.forEach { sampleName += "[${it}] " }
+        serverInfo.playerNameList.forEach { sampleName += "[${it}] " }
 
         var serverList = ""
         MinecraftPluginData.serverMap.forEach { serverList += "[${it.key}] " }
 
         return "服务器信息如下:\n" +
                 "名   称: $name\n" +
-                "版   本: ${serverListInfo.versionName}\n" +
-                "描   述: ${serverListInfo.description}\n" +
-                "在线人数: ${serverListInfo.playerOnline}/${serverListInfo.playerMax}\n" +
+                "版   本: ${serverInfo.versionName}\n" +
+                "描   述: ${serverInfo.description}\n" +
+                "在线人数: ${serverInfo.playerOnline}/${serverInfo.playerMax}\n" +
                 "$sampleName\n" +
-                "mod个数: ${serverListInfo.modNumber}\n" +
+                "mod个数: ${serverInfo.modNumber}\n" +
                 "服务器列表:$serverList"
     }
+
 
     suspend fun getTPS(name: String, group: Group, sender: String) {
         val serverInfo = MinecraftPluginData.serverMap[name] ?: return

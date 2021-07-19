@@ -13,13 +13,14 @@ import net.mamoe.mirai.event.subscribeGroupMessages
 import top.limbang.mirai.minecraft.service.ImageService.createErrorImage
 import top.limbang.mirai.minecraft.service.ServerService.getServerList
 import top.limbang.mirai.minecraft.service.ServerService.getTPS
+import top.limbang.mirai.minecraft.service.ServerService.pingALlServer
 import top.limbang.mirai.minecraft.service.ServerService.pingServer
 
 
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.mirai-console-minecraft-plugin",
-        version = "1.1.2",
+        version = "1.1.3",
     ) {
         author("limbang")
     }
@@ -31,17 +32,20 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     override fun onEnable() {
         MinecraftPluginData.reload()
         MinecraftPluginCompositeCommand.register()
+        val ping = MinecraftPluginData.commandMap[CommandName.PING] ?: "!"
+        val list = MinecraftPluginData.commandMap[CommandName.LIST] ?: "!list"
+        val tps = MinecraftPluginData.commandMap[CommandName.TPS] ?: "!tps"
+        val pingAll = MinecraftPluginData.commandMap[CommandName.PING_ALL] ?: "!all"
 
         globalEventChannel().subscribeGroupMessages {
-            (startsWith("!") or startsWith("！")).quoteReply {
-                val mgs = it.substring(1)
-                if (mgs == "list" || mgs == "列表") getServerList()
-                else if (mgs.endsWith("tps")) {
-                    getTPS(mgs.substringBefore("tps").trim(),group,sender.nameCardOrNick)
-                    Unit
-                } else {
-                    pingServer(mgs) ?: group.uploadImage(createErrorImage(sender.nameCardOrNick),"jpg")
-                }
+            case(list) quoteReply { getServerList() }
+            case(pingAll) reply { pingALlServer(sender,group) }
+            startsWith(ping) quoteReply {
+                pingServer(it.substringAfter(ping).trim()) ?: group.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
+            }
+            startsWith(tps) quoteReply {
+                getTPS(it.substringAfter(tps).trim(), group, sender.nameCardOrNick)
+                Unit
             }
         }
 
@@ -49,14 +53,15 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
             if (target.id == bot.id) {
                 subject.sendMessage(
                     "Minecraft 插件使用说明:\n" +
-                            "!为中英文通用,!和服务器名称之间可以有空格,和tps之间也一样\n" +
-                            "Ping服务器:!前缀加服务器名称,如!服务器名称\n" +
-                            "TPS:!前缀加服务器名称,tps结尾,如!服务器名称tps\n" +
-                            "查看服务器列表:!list 或 !列表"
+                            "Ping服务器:$ping 服务器名称\n" +
+                            "Ping所有服务器:$pingAll\n" +
+                            "TPS:$tps 服务器名称\n" +
+                            "查看服务器列表:$list"
                 )
             }
         }
     }
+
 
 }
 

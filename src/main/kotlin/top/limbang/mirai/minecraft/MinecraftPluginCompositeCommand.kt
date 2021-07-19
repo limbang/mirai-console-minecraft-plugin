@@ -13,6 +13,12 @@ import top.limbang.mirai.minecraft.service.ServerService.getServerList
 object MinecraftPluginCompositeCommand : CompositeCommand(
     MiraiConsoleMinecraftPlugin, "mc"
 ) {
+    @SubCommand
+    suspend fun CommandSender.setCommand(name: CommandName,command:String) {
+        MinecraftPluginData.commandMap[name] = command
+        sendMessage("配置[$name]触发指令[$command],需重启机器人生效.")
+    }
+
 
     @SubCommand
     suspend fun CommandSender.loginInfo() {

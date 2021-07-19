@@ -7,11 +7,10 @@ plugins {
 }
 
 group = "top.limbang"
-version = "1.1.2"
+version = "1.1.3"
 
 repositories {
-
-    maven("http://web.blackyin.top:8015/repository/maven-public/")
+    maven("https://maven.blackyin.xyz:8015/repository/maven-public/")
     maven("https://maven.aliyun.com/repository/public")
     mavenCentral()
 }
