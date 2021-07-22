@@ -41,11 +41,15 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
             case(list) quoteReply { getServerList() }
             case(pingAll) reply { pingALlServer(sender,group) }
             startsWith(ping) quoteReply {
-                pingServer(it.substringAfter(ping).trim()) ?: group.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
+                pingServer(it.substringAfter(ping).trim()) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
             }
-            startsWith(tps) quoteReply {
-                getTPS(it.substringAfter(tps).trim(), group, sender.nameCardOrNick)
-                Unit
+            startsWith(tps) { getTPS(it, group, sender.nameCardOrNick) }
+            startsWith("!ping") quoteReply {
+                val parameter = it.trim().split(Regex("\\s"))
+                if(parameter.size < 2 || parameter.size > 3) return@quoteReply "参数不正确:!ping <地址> [端口]"
+                val address = parameter[1]
+                val port = if(parameter.size == 3 ) parameter[2].toInt() else 25565
+                pingServer(address,port,address) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
             }
         }
 
@@ -54,6 +58,7 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
                 subject.sendMessage(
                     "Minecraft 插件使用说明:\n" +
                             "Ping服务器:$ping 服务器名称\n" +
+                            "Ping服务器:!ping <地址> [端口]\n"+
                             "Ping所有服务器:$pingAll\n" +
                             "TPS:$tps 服务器名称\n" +
                             "查看服务器列表:$list"

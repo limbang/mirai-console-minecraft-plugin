@@ -48,14 +48,17 @@ object ServerService {
     fun pingServer(name: String): Any? {
         if (name.isEmpty()) return Unit
         val server = MinecraftPluginData.serverMap[name] ?: return Unit
+        return pingServer(server.address, server.port,name)
+    }
+
+    fun pingServer(address:String,port:Int,name:String): Any? {
         val serverInfo = try {
-            val json = MinecraftClient.ping(server.address, server.port)
+            val json = MinecraftClient.ping(address,port)
                 .get(5000, TimeUnit.MILLISECONDS) ?: return null
             ServerInfoUtils.getServiceInfo(json)
         } catch (e: Exception) {
             return null
         }
-
         return serverInfoToString(name, serverInfo)
     }
 
