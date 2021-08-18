@@ -18,7 +18,7 @@ Mirai Console Minecraft Plugin
 mc addLogin url参考 [yggdrasil](https://github.com/yushijinhun/authlib-injector/wiki/Yggdrasil-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83#%E4%BC%9A%E8%AF%9D%E9%83%A8%E5%88%86)
 
 - name   登陆配置名称
-- authServerUrl 验证服务器地址 正版地址为:https://authserver.mojang.com/authenticate
+- authServerUrl 验证服务器地址 正版地址为:https://authserver.mojang.com
 - sessionServerUrl 会话服务器地址 正版地址为:https://sessionserver.mojang.com
 - username 账号
 - password 密码
