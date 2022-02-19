@@ -20,7 +20,7 @@ import top.limbang.mirai.minecraft.service.ServerService.pingServer
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.mirai-console-minecraft-plugin",
-        version = "1.1.6",
+        version = "1.1.7",
     ) {
         author("limbang")
     }

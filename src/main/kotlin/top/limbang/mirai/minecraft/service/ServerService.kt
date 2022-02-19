@@ -19,6 +19,7 @@ import top.fanua.doctor.client.utils.ServerInfoUtils
 import top.fanua.doctor.client.utils.substringBetween
 import top.fanua.doctor.network.handler.onPacket
 import top.fanua.doctor.network.handler.oncePacket
+import top.fanua.doctor.plugin.fix.PluginFix
 import top.fanua.doctor.protocol.definition.play.client.JoinGamePacket
 import top.fanua.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
 import top.limbang.mirai.minecraft.MinecraftPluginData
@@ -48,12 +49,12 @@ object ServerService {
     fun pingServer(name: String): Any? {
         if (name.isEmpty()) return Unit
         val server = MinecraftPluginData.serverMap[name] ?: return Unit
-        return pingServer(server.address, server.port,name)
+        return pingServer(server.address, server.port, name)
     }
 
-    fun pingServer(address:String,port:Int,name:String): Any? {
+    fun pingServer(address: String, port: Int, name: String): Any? {
         val serverInfo = try {
-            val json = MinecraftClient.ping(address,port)
+            val json = MinecraftClient.ping(address, port)
                 .get(5000, TimeUnit.MILLISECONDS) ?: return null
             ServerInfoUtils.getServiceInfo(json)
         } catch (e: Exception) {
@@ -72,7 +73,7 @@ object ServerService {
         return "服务器信息如下:\n" +
                 "名   称: $name\n" +
                 "版   本: ${serverInfo.versionName}\n" +
-                "描   述: ${serverInfo.description}\n" +
+                "描   述: ${descriptionColourHandle(serverInfo.description)}\n" +
                 "在线人数: ${serverInfo.playerOnline}/${serverInfo.playerMax}\n" +
                 "$sampleName\n" +
                 "mod个数: ${serverInfo.modNumber}\n" +
@@ -91,8 +92,9 @@ object ServerService {
             .user(serverInfo.loginInfo.username, serverInfo.loginInfo.password)
             .authServerUrl(serverInfo.loginInfo.authServerUrl)
             .sessionServerUrl(serverInfo.loginInfo.sessionServerUrl)
-            .plugin(TpsPlugin())
             .plugin(AutoVersionForgePlugin())
+            .plugin(TpsPlugin())
+            .plugin(PluginFix())
             .build()
 
         if (!client.start(serverInfo.address, serverInfo.port, 5000)) {
@@ -133,5 +135,12 @@ object ServerService {
             names += "[$name]${address.address}:${address.port}\n"
         }
         return "服务器列表为:\n$names"
+    }
+
+    /**
+     * 服务器描述颜色处理
+     */
+    private fun descriptionColourHandle(description: String): String {
+        return description.replace("§[0-9a-z]".toRegex(),"")
     }
 }
