@@ -1,58 +1,19 @@
-# Mirai
+# mirai
 bots/
 config/
 data/
 plugins/
-
-
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-target/
-build/
-
-.idea/
-*.iml
-mirai.iml
-/.idea/
-.idea/*
-/.idea/*
-
-/test
-
-.gradle/
-
 local.properties
 
-# Maven publishing credits
-keys.properties
-/plugins/
+# Gradle
+.gradle
+**/build/
+!src/**/build/
 
-token.txt
-bintray.user.txt
-bintray.key.txt
+# Idea
+.idea/*.xml
+*.iml
+!.idea/copyright/
 
-# For gpg sign
-/build-gpg-sign
-# Name for IDEA direction sorting
-build-secret-keys/
+# mac os
+.DS_Store
