@@ -48,7 +48,7 @@ object MiraiConsoleMinecraftPlugin : KotlinPlugin(
 
         globalEventChannel().subscribeGroupMessages {
             case(list) quoteReply { getServerList() }
-            case(pingAll) reply { pingALlServer(sender,group) }
+            case(pingAll) reply { pingALlServer() }
             startsWith(ping) quoteReply {
                 pingServer(it.substringAfter(ping).trim()) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
             }

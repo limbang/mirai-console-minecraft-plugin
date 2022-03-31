@@ -12,13 +12,9 @@ package top.limbang.mirai.minecraft.service
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
-import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.nameCardOrNick
-import net.mamoe.mirai.message.data.ForwardMessageBuilder
-import net.mamoe.mirai.message.data.Message
-import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.event.events.GroupMessageEvent
+import net.mamoe.mirai.message.data.*
 import top.fanua.doctor.client.MinecraftClient
 import top.fanua.doctor.client.entity.ServerInfo
 import top.fanua.doctor.client.running.AutoVersionForgePlugin
@@ -33,60 +29,83 @@ import top.fanua.doctor.protocol.definition.play.client.JoinGamePacket
 import top.fanua.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
 import top.limbang.mirai.minecraft.MinecraftPluginData
 import top.limbang.mirai.minecraft.service.ImageService.createSubtitlesImage
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 object ServerService {
 
-    suspend fun pingALlServer(sender: Member, group: Group): Message {
-        val builder = ForwardMessageBuilder(group)
-        MinecraftPluginData.serverMap.forEach {
-            try {
-                val json = MinecraftClient.ping(it.value.address, it.value.port).get(5000, TimeUnit.MILLISECONDS)
-                val serverInfo = ServerInfoUtils.getServiceInfo(json)
-                builder.add(group.bot, PlainText(serverInfoToString(it.key, serverInfo)))
-            } catch (e: Exception) {
-                builder.add(
-                    group.bot, PlainText("[${it.key}]服务器连接失败...\n").plus(
-                        group.uploadImage(ImageService.createErrorImage(sender.nameCardOrNick), "jpg")
-                    )
-                )
+    /**
+     * ping 所有服务器
+     *
+     * @param group
+     * @return
+     */
+    fun GroupMessageEvent.pingALlServer(): ForwardMessage {
+        return buildForwardMessage {
+            MinecraftPluginData.serverMap.forEach {
+                bot says (pingServer(it.value.address, it.value.port, it.key) ?: PlainText("[${it.key}]服务器连接失败...\n"))
             }
         }
-        return builder.build()
     }
 
+    /**
+     * 根据预设好的名称 ping 服务器
+     *
+     * @param name 名称
+     * @return
+     */
     fun pingServer(name: String): Any? {
         if (name.isEmpty()) return Unit
         val server = MinecraftPluginData.serverMap[name] ?: return Unit
         return pingServer(server.address, server.port, name)
     }
 
-    fun pingServer(address: String, port: Int, name: String): Any? {
-        val serverInfo = try {
-            val json = MinecraftClient.ping(address, port)
-                .get(5000, TimeUnit.MILLISECONDS) ?: return null
-            ServerInfoUtils.getServiceInfo(json)
-        } catch (e: Exception) {
-            return null
-        }
-        return serverInfoToString(name, serverInfo)
+    /**
+     * ping 服务器
+     *
+     * @param address 地址
+     * @param port 端口
+     * @param name 昵称
+     * @return
+     */
+    fun pingServer(address: String, port: Int, name: String): Message? {
+        return ServerInfoUtils.getServiceInfo(
+            try {
+                MinecraftClient.ping(address, port).get(5000, TimeUnit.MILLISECONDS)
+            } catch (e: TimeoutException) {
+                println("获取ping信息,等待超时...")
+                return null
+            } catch (e: ExecutionException) {
+                println("获取ping信息失败,${e.message}")
+                return null
+            }
+        ).toMessage(name)
     }
 
-    private fun serverInfoToString(name: String, serverInfo: ServerInfo): String {
+    /**
+     * 把服务器信息转成消息
+     *
+     * @param name 昵称
+     * @return [Message]
+     */
+    private fun ServerInfo.toMessage(name: String): Message {
         var sampleName = ""
-        serverInfo.playerNameList.forEach { sampleName += "[${it}] " }
+        playerNameList.forEach { sampleName += "[${it}] " }
 
         var serverList = ""
         MinecraftPluginData.serverMap.forEach { serverList += "[${it.key}] " }
 
-        return "服务器信息如下:\n" +
-                "名   称: $name\n" +
-                "版   本: ${serverInfo.versionName}\n" +
-                "描   述: ${descriptionColourHandle(serverInfo.description)}\n" +
-                "在线人数: ${serverInfo.playerOnline}/${serverInfo.playerMax}\n" +
-                "$sampleName\n" +
-                "mod个数: ${serverInfo.modNumber}\n" +
-                "服务器列表:$serverList"
+        return PlainText(
+            "服务器信息如下:\n" +
+                    "名   称: $name\n" +
+                    "版   本: ${versionName}\n" +
+                    "描   述: ${descriptionColourHandle(description)}\n" +
+                    "在线人数: ${playerOnline}/${playerMax}\n" +
+                    "$sampleName\n" +
+                    "mod个数: ${modNumber}\n" +
+                    "服务器列表:$serverList"
+        )
     }
 
 
@@ -150,6 +169,6 @@ object ServerService {
      * 服务器描述颜色处理
      */
     private fun descriptionColourHandle(description: String): String {
-        return description.replace("§[0-9a-z]".toRegex(),"")
+        return description.replace("§[0-9a-z]".toRegex(), "")
     }
 }
