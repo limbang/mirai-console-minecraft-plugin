@@ -1,13 +1,13 @@
 plugins {
-    val kotlinVersion = "1.6.10"
+    val kotlinVersion = "1.6.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.10.0"
+    id("net.mamoe.mirai-console") version "2.11.1"
 }
 
-group = "top.limbang"
-version = "1.1.8"
+group = "top.limbang.minecraft"
+version = "1.1.9"
 
 repositories {
     maven("https://maven.fanua.top:8015/repository/maven-public/")

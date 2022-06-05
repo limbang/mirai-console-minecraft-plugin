@@ -28,10 +28,12 @@ import top.limbang.mirai.minecraft.service.ServerService.pingServer
 
 object MiraiConsoleMinecraftPlugin : KotlinPlugin(
     JvmPluginDescription(
-        id = "top.limbang.mirai-console-minecraft-plugin",
+        id = "top.limbang.minecraft",
+        name = "minecraft",
         version = "1.1.8",
     ) {
         author("limbang")
+        info("""Minecraft插件""")
     }
 ) {
     override fun onDisable() {
