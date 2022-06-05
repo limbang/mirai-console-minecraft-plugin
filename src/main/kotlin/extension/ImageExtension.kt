@@ -7,7 +7,7 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft.extension
+package top.limbang.minecraft.extension
 
 
 import java.awt.BasicStroke

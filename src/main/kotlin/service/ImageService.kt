@@ -7,12 +7,12 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft.service
+package top.limbang.minecraft.service
 
-import top.limbang.mirai.minecraft.MiraiConsoleMinecraftPlugin
-import top.limbang.mirai.minecraft.extension.addSubtitles
-import top.limbang.mirai.minecraft.extension.readImage
-import top.limbang.mirai.minecraft.extension.toInput
+import top.limbang.minecraft.Minecraft
+import top.limbang.minecraft.extension.addSubtitles
+import top.limbang.minecraft.extension.readImage
+import top.limbang.minecraft.extension.toInput
 import java.io.ByteArrayInputStream
 
 object ImageService {
@@ -43,7 +43,7 @@ object ImageService {
      */
     fun createSubtitlesImage(subtitles: String, resourceName: String): ByteArrayInputStream {
         val resourceImageStream =
-            MiraiConsoleMinecraftPlugin.getResourceAsStream(resourceName) ?: throw RuntimeException("读取不到资源文件.")
+            Minecraft.getResourceAsStream(resourceName) ?: throw RuntimeException("读取不到资源文件.")
         val image = resourceImageStream.use { resourceImageStream -> resourceImageStream.readImage() }
         return image.addSubtitles(subtitles).toInput()
     }

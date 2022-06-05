@@ -7,14 +7,17 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft.service
+package top.limbang.minecraft.service
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.events.GroupMessageEvent
-import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.message.data.ForwardMessage
+import net.mamoe.mirai.message.data.Message
+import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.data.buildForwardMessage
 import top.fanua.doctor.client.MinecraftClient
 import top.fanua.doctor.client.entity.ServerInfo
 import top.fanua.doctor.client.running.AutoVersionForgePlugin
@@ -27,8 +30,8 @@ import top.fanua.doctor.network.handler.oncePacket
 import top.fanua.doctor.plugin.fix.PluginFix
 import top.fanua.doctor.protocol.definition.play.client.JoinGamePacket
 import top.fanua.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
-import top.limbang.mirai.minecraft.MinecraftPluginData
-import top.limbang.mirai.minecraft.service.ImageService.createSubtitlesImage
+import top.limbang.minecraft.PluginData.serverMap
+import top.limbang.minecraft.service.ImageService.createSubtitlesImage
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -38,12 +41,11 @@ object ServerService {
     /**
      * ping 所有服务器
      *
-     * @param group
      * @return
      */
     fun GroupMessageEvent.pingALlServer(): ForwardMessage {
         return buildForwardMessage {
-            MinecraftPluginData.serverMap.forEach {
+            serverMap.forEach {
                 bot says (pingServer(it.value.address, it.value.port, it.key) ?: PlainText("[${it.key}]服务器连接失败...\n"))
             }
         }
@@ -57,7 +59,7 @@ object ServerService {
      */
     fun pingServer(name: String): Any? {
         if (name.isEmpty()) return Unit
-        val server = MinecraftPluginData.serverMap[name] ?: return Unit
+        val server = serverMap[name] ?: return Unit
         return pingServer(server.address, server.port, name)
     }
 
@@ -94,7 +96,7 @@ object ServerService {
         playerNameList.forEach { sampleName += "[${it}] " }
 
         var serverList = ""
-        MinecraftPluginData.serverMap.forEach { serverList += "[${it.key}] " }
+        serverMap.forEach { serverList += "[${it.key}] " }
 
         return PlainText(
             "服务器信息如下:\n" +
@@ -110,7 +112,7 @@ object ServerService {
 
 
     suspend fun getTPS(name: String, group: Group, sender: String) {
-        val serverInfo = MinecraftPluginData.serverMap[name] ?: return
+        val serverInfo = serverMap[name] ?: return
         if (serverInfo.loginInfo == null) {
             group.sendMessage("服务器[$name]未配置登陆信息...")
             return
@@ -131,23 +133,27 @@ object ServerService {
         }
 
         client.oncePacket<JoinGamePacket> {
-            GlobalScope.launch {
-                group.sendMessage("登陆[$name]成功，开始发送 forge tps 指令")
+            runBlocking {
+                launch {
+                    group.sendMessage("登陆[$name]成功，开始发送 forge tps 指令")
+                }
             }
         }.onPacket<PlayerPositionAndLookPacket> {
-            GlobalScope.launch {
-                val forgeTps = client.tpsTools.getTpsSuspend()
-                var outMsg = "[$name]低于20TPS的维度如下:\n"
-                forgeTps.forEach { tpsEntity ->
-                    val dim = tpsEntity.dim.substringBetween("Dim", "(").trim()
-                    outMsg += when {
-                        tpsEntity.dim == "Overall" -> "\n全局TPS:${tpsEntity.tps} Tick时间:${tpsEntity.tickTime}"
-                        tpsEntity.tps < 20 -> "TPS:%-4.4s 维度:%s\n".format(tpsEntity.tps, dim)
-                        else -> ""
+            runBlocking {
+                launch {
+                    val forgeTps = client.tpsTools.getTpsSuspend()
+                    var outMsg = "[$name]低于20TPS的维度如下:\n"
+                    forgeTps.forEach { tpsEntity ->
+                        val dim = tpsEntity.dim.substringBetween("Dim", "(").trim()
+                        outMsg += when {
+                            tpsEntity.dim == "Overall" -> "\n全局TPS:${tpsEntity.tps} Tick时间:${tpsEntity.tickTime}"
+                            tpsEntity.tps < 20 -> "TPS:%-4.4s 维度:%s\n".format(tpsEntity.tps, dim)
+                            else -> ""
+                        }
                     }
+                    group.sendMessage(outMsg)
+                    client.stop()
                 }
-                group.sendMessage(outMsg)
-                client.stop()
             }
         }
     }
@@ -156,10 +162,10 @@ object ServerService {
      * ### 获取服务器列表
      */
     fun getServerList(): String {
-        if (MinecraftPluginData.serverMap.isEmpty())
+        if (serverMap.isEmpty())
             return "无服务器列表..."
         var names = ""
-        for ((name, address) in MinecraftPluginData.serverMap) {
+        for ((name, address) in serverMap) {
             names += "[$name]${address.address}:${address.port}\n"
         }
         return "服务器列表为:\n$names"
@@ -169,6 +175,6 @@ object ServerService {
      * 服务器描述颜色处理
      */
     private fun descriptionColourHandle(description: String): String {
-        return description.replace("§[0-9a-z]".toRegex(), "")
+        return description.replace("""§[\da-z]""".toRegex(), "")
     }
 }

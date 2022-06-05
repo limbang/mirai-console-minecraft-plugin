@@ -7,7 +7,7 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft
+package top.limbang.minecraft
 
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
@@ -17,13 +17,11 @@ import net.mamoe.mirai.console.command.getGroupOrNull
 /**
  * ### 插件指令
  */
-object MinecraftPluginCompositeCommand : CompositeCommand(
-    MiraiConsoleMinecraftPlugin, "mc"
-) {
+object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
     @SubCommand
     @Description("设置触发指令")
     suspend fun CommandSender.setCommand(name: CommandName, command: String) {
-        MinecraftPluginData.commandMap[name] = command
+        PluginData.commandMap[name] = command
         sendMessage("配置[$name]触发指令[$command],需重启机器人生效.")
     }
 
@@ -32,7 +30,7 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
     @Description("查看登陆信息")
     suspend fun CommandSender.loginInfo() {
         var loginInfo = ""
-        MinecraftPluginData.loginMap.forEach {
+        PluginData.loginMap.forEach {
             loginInfo += "[${it.key}] "
         }
         if (loginInfo.isEmpty())
@@ -52,14 +50,14 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
             return
         }
         LoginInfo(authServerUrl, sessionServerUrl, username, password)
-            .also { MinecraftPluginData.loginMap[name] = it }
+            .also { PluginData.loginMap[name] = it }
         sendMessage("[$name]登陆配置添加成功.")
     }
 
     @SubCommand
     @Description("删除登陆信息")
     suspend fun CommandSender.deleteLogin(name: String) {
-        if (MinecraftPluginData.loginMap.keys.remove(name)) {
+        if (PluginData.loginMap.keys.remove(name)) {
             sendMessage("登陆配置[$name]删除成功.")
         } else {
             sendMessage("登陆配置[$name]删除失败.")
@@ -69,27 +67,27 @@ object MinecraftPluginCompositeCommand : CompositeCommand(
     @SubCommand
     @Description("添加服务器,端口默认 25565")
     suspend fun CommandSender.addServer(name: String, address: String, port: Int = 25565) {
-        MinecraftPluginData.serverMap[name] = ServerAddress(address, port, null)
+        PluginData.serverMap[name] = ServerAddress(address, port, null)
         sendMessage("服务器[$name]添加成功.")
     }
 
     @SubCommand
     @Description("添加带登陆信息带服务器,端口默认 25565")
     suspend fun CommandSender.addServerLogin(loginName: String ,name: String, address: String, port: Int = 25565) {
-        val loginInfo = MinecraftPluginData.loginMap[loginName]
+        val loginInfo = PluginData.loginMap[loginName]
         if (loginInfo == null) {
             sendMessage("[$loginName]该登陆信息尚未配置.")
             return
         }
 
-        MinecraftPluginData.serverMap[name] = ServerAddress(address, port, loginInfo)
+        PluginData.serverMap[name] = ServerAddress(address, port, loginInfo)
         sendMessage("服务器[$name]添加成功.")
     }
 
     @SubCommand
     @Description("删除服务器")
     suspend fun CommandSender.deleteServer(name: String) {
-        if (MinecraftPluginData.serverMap.keys.remove(name)) {
+        if (PluginData.serverMap.keys.remove(name)) {
             sendMessage("服务器[$name]删除成功.")
         } else {
             sendMessage("服务器[$name]删除失败.")

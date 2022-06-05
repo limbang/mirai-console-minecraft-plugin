@@ -7,7 +7,7 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft
+package top.limbang.minecraft
 
 import kotlinx.serialization.Serializable
 import net.mamoe.mirai.console.data.AutoSavePluginData
@@ -47,7 +47,7 @@ enum class CommandName{
 /**
  * ### 插件配置
  */
-object MinecraftPluginData : AutoSavePluginData("minecraft") {
+object PluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
     var loginMap: MutableMap<String, LoginInfo> by value()
     var commandMap: MutableMap<CommandName, String> by value()

@@ -7,8 +7,7 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.mirai.minecraft
-
+package top.limbang.minecraft
 
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
@@ -19,34 +18,33 @@ import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
-import top.limbang.mirai.minecraft.service.ImageService.createErrorImage
-import top.limbang.mirai.minecraft.service.ServerService.getServerList
-import top.limbang.mirai.minecraft.service.ServerService.getTPS
-import top.limbang.mirai.minecraft.service.ServerService.pingALlServer
-import top.limbang.mirai.minecraft.service.ServerService.pingServer
+import top.limbang.minecraft.service.ImageService.createErrorImage
+import top.limbang.minecraft.service.ServerService.getServerList
+import top.limbang.minecraft.service.ServerService.getTPS
+import top.limbang.minecraft.service.ServerService.pingALlServer
+import top.limbang.minecraft.service.ServerService.pingServer
 
-
-object MiraiConsoleMinecraftPlugin : KotlinPlugin(
+object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "minecraft",
-        version = "1.1.8",
+        version = "1.1.9",
     ) {
         author("limbang")
         info("""Minecraft插件""")
     }
 ) {
     override fun onDisable() {
-        MinecraftPluginCompositeCommand.unregister()
+        PluginCompositeCommand.unregister()
     }
 
     override fun onEnable() {
-        MinecraftPluginData.reload()
-        MinecraftPluginCompositeCommand.register()
-        val ping = MinecraftPluginData.commandMap[CommandName.PING] ?: "!"
-        val list = MinecraftPluginData.commandMap[CommandName.LIST] ?: "!list"
-        val tps = MinecraftPluginData.commandMap[CommandName.TPS] ?: "!tps"
-        val pingAll = MinecraftPluginData.commandMap[CommandName.PING_ALL] ?: "!all"
+        PluginData.reload()
+        PluginCompositeCommand.register()
+        val ping = PluginData.commandMap[CommandName.PING] ?: "!"
+        val list = PluginData.commandMap[CommandName.LIST] ?: "!list"
+        val tps = PluginData.commandMap[CommandName.TPS] ?: "!tps"
+        val pingAll = PluginData.commandMap[CommandName.PING_ALL] ?: "!all"
 
         globalEventChannel().subscribeGroupMessages {
             case(list) quoteReply { getServerList() }
