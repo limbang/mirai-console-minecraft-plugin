@@ -3,7 +3,7 @@
 [![](https://img.shields.io/github/v/release/limbang/mirai-console-minecraft-plugin?include_prereleases)](https://github.com/limbang/mirai-console-minecraft-plugin/releases)
 ![](https://img.shields.io/github/downloads/limbang/mirai-console-minecraft-plugin/total)
 [![](https://img.shields.io/github/license/limbang/mirai-console-minecraft-plugin)](https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE)
-[![](https://img.shields.io/badge/mirai-2.10.0-69c1b9)](https://github.com/mamoe/mirai)
+[![](https://img.shields.io/badge/mirai-2.11.1-69c1b9)](https://github.com/mamoe/mirai)
 
 本项目是基于 Mirai Console 编写的插件
 <p>用于 ping 服务器状态,和查看服务器 tps,基于<a href = "https://github.com/Forsaken-Land/doctor">doctor</a>库实现</p>
