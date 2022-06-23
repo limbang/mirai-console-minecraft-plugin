@@ -11,6 +11,7 @@ package top.limbang.minecraft
 
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
+import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
@@ -18,20 +19,25 @@ import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
+import top.limbang.minecraft.PluginCompositeCommand.renameServer
+import top.limbang.minecraft.PluginData.isPluginLinkage
+import top.limbang.minecraft.PluginData.isTps
 import top.limbang.minecraft.service.ImageService.createErrorImage
 import top.limbang.minecraft.service.ServerService.getServerList
 import top.limbang.minecraft.service.ServerService.getTPS
 import top.limbang.minecraft.service.ServerService.pingALlServer
 import top.limbang.minecraft.service.ServerService.pingServer
+import top.limbang.mirai.event.RenameEvent
 
 object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
-        name = "minecraft",
-        version = "1.1.9",
+        name = "Minecraft",
+        version = "1.1.10",
     ) {
         author("limbang")
         info("""Minecraft插件""")
+        dependsOn("top.limbang.general-plugin-interface")
     }
 ) {
     override fun onDisable() {
@@ -46,19 +52,24 @@ object Minecraft : KotlinPlugin(
         val tps = PluginData.commandMap[CommandName.TPS] ?: "!tps"
         val pingAll = PluginData.commandMap[CommandName.PING_ALL] ?: "!all"
 
+
+
         globalEventChannel().subscribeGroupMessages {
             case(list) quoteReply { getServerList() }
             case(pingAll) reply { pingALlServer() }
             startsWith(ping) quoteReply {
                 pingServer(it.substringAfter(ping).trim()) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
             }
-            startsWith(tps) { getTPS(it, group, sender.nameCardOrNick) }
+            startsWith(tps) {
+                if (!isTps) return@startsWith
+                getTPS(it, group, sender.nameCardOrNick)
+            }
             startsWith("!ping") quoteReply {
                 val parameter = it.trim().split(Regex("\\s"))
-                if(parameter.size < 2 || parameter.size > 3) return@quoteReply "参数不正确:!ping <地址> [端口]"
+                if (parameter.size < 2 || parameter.size > 3) return@quoteReply "参数不正确:!ping <地址> [端口]"
                 val address = parameter[1]
-                val port = if(parameter.size == 3 ) parameter[2].toInt() else 25565
-                pingServer(address,port,address) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
+                val port = if (parameter.size == 3) parameter[2].toInt() else 25565
+                pingServer(address, port, address) ?: subject.uploadImage(createErrorImage(sender.nameCardOrNick), "jpg")
             }
         }
 
@@ -67,12 +78,19 @@ object Minecraft : KotlinPlugin(
                 subject.sendMessage(
                     "Minecraft 插件使用说明:\n" +
                             "Ping服务器:$ping 服务器名称\n" +
-                            "Ping服务器:!ping <地址> [端口]\n"+
+                            "Ping服务器:!ping <地址> [端口]\n" +
                             "Ping所有服务器:$pingAll\n" +
                             "TPS:$tps 服务器名称\n" +
                             "查看服务器列表:$list"
                 )
             }
+        }
+        // 监听改名事件
+        globalEventChannel().subscribeAlways<RenameEvent> {
+            logger.info("RenameEvent: pluginId = $pluginId oldName = $oldName newName = $newName")
+            if (!isPluginLinkage) return@subscribeAlways
+            if (pluginId == Minecraft.id) return@subscribeAlways
+            renameServer(oldName, newName,true)
         }
     }
 

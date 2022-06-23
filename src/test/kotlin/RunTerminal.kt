@@ -10,10 +10,10 @@ import java.util.*
 suspend fun main() {
     MiraiConsoleTerminalLoader.startAsDaemon()
 
-    val pluginInstance = Minecraft
+    //val pluginInstance = Minecraft
 
-    pluginInstance.load() // 主动加载插件, Console 会调用 MinecraftRemoteConsole.onLoad
-    pluginInstance.enable() // 主动启用插件, Console 会调用 MinecraftRemoteConsole.onEnable
+    //pluginInstance.load() // 主动加载插件, Console 会调用 MinecraftRemoteConsole.onLoad
+    //pluginInstance.enable() // 主动启用插件, Console 会调用 MinecraftRemoteConsole.onEnable
 
     val properties = Properties().apply { File("account.properties").inputStream().use { load(it) } }
 

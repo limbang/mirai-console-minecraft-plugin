@@ -10,6 +10,8 @@
 <p>戳一戳机器人头像可以获取帮助</p>
 </div>
 
+需要前置插件[mirai-plugin-general-interface](https://github.com/limbang/mirai-plugin-general-interface)用来支持事件
+
 ## 命令
 
 ```shell
@@ -19,6 +21,8 @@
 /mc deleteLogin <name>    # 删除登陆信息
 /mc deleteServer <name>    # 删除服务器
 /mc loginInfo    # 查看登陆信息
+/mc setPluginLinkage <value>    # 设置插件联动 true false  默认为:true 
+/mc setTps <value>    # 设置tps功能启用
 ```
 ### 使用TPS功能
 1. 使用指令添加登陆信息,比如添加遗落之地的皮肤站演示如下

@@ -12,6 +12,12 @@ package top.limbang.minecraft
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.getGroupOrNull
+import net.mamoe.mirai.console.plugin.id
+import net.mamoe.mirai.event.broadcast
+import top.limbang.minecraft.PluginData.isPluginLinkage
+import top.limbang.minecraft.PluginData.isTps
+import top.limbang.minecraft.PluginData.serverMap
+import top.limbang.mirai.event.RenameEvent
 
 
 /**
@@ -67,31 +73,62 @@ object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
     @SubCommand
     @Description("添加服务器,端口默认 25565")
     suspend fun CommandSender.addServer(name: String, address: String, port: Int = 25565) {
-        PluginData.serverMap[name] = ServerAddress(address, port, null)
+        serverMap[name] = ServerAddress(address, port, null)
         sendMessage("服务器[$name]添加成功.")
     }
 
     @SubCommand
     @Description("添加带登陆信息带服务器,端口默认 25565")
-    suspend fun CommandSender.addServerLogin(loginName: String ,name: String, address: String, port: Int = 25565) {
+    suspend fun CommandSender.addServerLogin(loginName: String, name: String, address: String, port: Int = 25565) {
         val loginInfo = PluginData.loginMap[loginName]
         if (loginInfo == null) {
             sendMessage("[$loginName]该登陆信息尚未配置.")
             return
         }
 
-        PluginData.serverMap[name] = ServerAddress(address, port, loginInfo)
+        serverMap[name] = ServerAddress(address, port, loginInfo)
         sendMessage("服务器[$name]添加成功.")
     }
 
     @SubCommand
     @Description("删除服务器")
     suspend fun CommandSender.deleteServer(name: String) {
-        if (PluginData.serverMap.keys.remove(name)) {
+        if (serverMap.keys.remove(name)) {
             sendMessage("服务器[$name]删除成功.")
         } else {
             sendMessage("服务器[$name]删除失败.")
         }
     }
 
+    @SubCommand
+    @Description("重新命名服务器")
+    suspend fun CommandSender.rename(name: String, newName: String) {
+        if (renameServer(name, newName,false)) sendMessage("原[$name]修改[$newName]成功.")
+        else sendMessage("没有找到[$name]服务器.")
+    }
+
+    internal suspend fun renameServer(name: String, newName: String, isEvent: Boolean): Boolean {
+        val server = serverMap[name]
+        return if (server != null) {
+            serverMap.remove(name)
+            serverMap[newName] = server
+            // 发布改名广播
+            if (!isEvent) RenameEvent(Minecraft.id, name, newName).broadcast()
+            true
+        } else false
+    }
+
+    @SubCommand
+    @Description("设置插件联动")
+    suspend fun CommandSender.setPluginLinkage(value: Boolean) {
+        isPluginLinkage = value
+        sendMessage("插件联动:$isPluginLinkage")
+    }
+
+    @SubCommand
+    @Description("设置tps功能启用")
+    suspend fun CommandSender.setTps(value: Boolean) {
+        isTps = value
+        sendMessage("tps功能:$isTps")
+    }
 }
