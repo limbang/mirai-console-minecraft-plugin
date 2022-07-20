@@ -53,9 +53,6 @@ object PluginData : AutoSavePluginData("minecraft") {
     var loginMap: MutableMap<String, LoginInfo> by value()
     var commandMap: MutableMap<CommandName, String> by value()
 
-    @ValueDescription("插件联动,默认打开")
-    var isPluginLinkage: Boolean by value(true)
-
     @ValueDescription("tps查看,默认打开")
     var isTps: Boolean by value(true)
 }

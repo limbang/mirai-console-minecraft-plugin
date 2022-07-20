@@ -20,7 +20,6 @@ import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
 import top.limbang.minecraft.PluginCompositeCommand.renameServer
-import top.limbang.minecraft.PluginData.isPluginLinkage
 import top.limbang.minecraft.PluginData.isTps
 import top.limbang.minecraft.service.ImageService.createErrorImage
 import top.limbang.minecraft.service.ServerService.getServerList
@@ -33,13 +32,23 @@ object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "Minecraft",
-        version = "1.1.10",
+        version = "1.1.11",
     ) {
         author("limbang")
         info("""Minecraft插件""")
-        dependsOn("top.limbang.general-plugin-interface")
+        dependsOn("top.limbang.general-plugin-interface",true)
     }
 ) {
+    /** 是否加载通用插件接口 */
+    val isLoadGeneralPluginInterface: Boolean = try {
+        Class.forName("top.limbang.mirai.GeneralPluginInterface")
+        true
+    } catch (e: Exception) {
+        logger.info("未加载通用插件接口,limbang插件系列改名无法同步.")
+        logger.info("前往 https://github.com/limbang/mirai-plugin-general-interface/releases 下载")
+        false
+    }
+
     override fun onDisable() {
         PluginCompositeCommand.unregister()
     }
@@ -85,10 +94,10 @@ object Minecraft : KotlinPlugin(
                 )
             }
         }
+        if (!isLoadGeneralPluginInterface) return
         // 监听改名事件
         globalEventChannel().subscribeAlways<RenameEvent> {
             logger.info("RenameEvent: pluginId = $pluginId oldName = $oldName newName = $newName")
-            if (!isPluginLinkage) return@subscribeAlways
             if (pluginId == Minecraft.id) return@subscribeAlways
             renameServer(oldName, newName,true)
         }
