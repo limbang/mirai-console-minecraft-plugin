@@ -1,13 +1,13 @@
 plugins {
-    val kotlinVersion = "1.7.0"
+    val kotlinVersion = "1.7.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.12.0"
+    id("net.mamoe.mirai-console") version "2.12.3"
 }
 
 group = "top.limbang"
-version = "1.1.11"
+version = "1.1.12"
 
 
 repositories {
@@ -20,7 +20,7 @@ dependencies {
     implementation("top.fanua.doctor:doctor-client:1.3.10")
     implementation("top.fanua.doctor:doctor-plugin-forge-fix:1.3.10")
     compileOnly("top.limbang:mirai-plugin-general-interface:1.0.1")
-    testImplementation("org.slf4j:slf4j-simple:1.7.36")
+    testImplementation("org.slf4j:slf4j-simple:2.0.4")
     "shadowLink"("top.fanua.doctor:doctor-client")
     "shadowLink"("top.fanua.doctor:doctor-plugin-forge-fix")
 }

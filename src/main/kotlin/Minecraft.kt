@@ -32,7 +32,7 @@ object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "Minecraft",
-        version = "1.1.11",
+        version = "1.1.12",
     ) {
         author("limbang")
         info("""Minecraft插件""")

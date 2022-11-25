@@ -72,17 +72,20 @@ object ServerService {
      * @return
      */
     fun pingServer(address: String, port: Int, name: String): Message? {
-        return ServerInfoUtils.getServiceInfo(
-            try {
+        return try {
+            ServerInfoUtils.getServiceInfo(
                 MinecraftClient.ping(address, port).get(5000, TimeUnit.MILLISECONDS)
-            } catch (e: TimeoutException) {
-                println("获取ping信息,等待超时...")
-                return null
-            } catch (e: ExecutionException) {
-                println("获取ping信息失败,${e.message}")
-                return null
-            }
-        ).toMessage(name)
+            ).toMessage(name)
+        } catch (e: TimeoutException) {
+            println("获取ping信息,等待超时...")
+            return null
+        } catch (e: ExecutionException) {
+            println("获取ping信息失败,${e.message}")
+            return null
+        } catch (e: NullPointerException) {
+            println("服务器正在启动请稍后。。。")
+            return null
+        }
     }
 
     /**
