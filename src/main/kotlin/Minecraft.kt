@@ -16,8 +16,8 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.contact.nameCardOrNick
+import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.NudgeEvent
-import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeGroupMessages
 import top.limbang.minecraft.PluginCompositeCommand.renameServer
 import top.limbang.minecraft.PluginData.isTps
@@ -26,13 +26,13 @@ import top.limbang.minecraft.service.ServerService.getServerList
 import top.limbang.minecraft.service.ServerService.getTPS
 import top.limbang.minecraft.service.ServerService.pingALlServer
 import top.limbang.minecraft.service.ServerService.pingServer
-import top.limbang.mirai.event.RenameEvent
+import top.limbang.mirai.event.GroupRenameEvent
 
 object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "Minecraft",
-        version = "1.1.12",
+        version = "1.1.13",
     ) {
         author("limbang")
         info("""Minecraft插件""")
@@ -61,9 +61,10 @@ object Minecraft : KotlinPlugin(
         val tps = PluginData.commandMap[CommandName.TPS] ?: "!tps"
         val pingAll = PluginData.commandMap[CommandName.PING_ALL] ?: "!all"
 
+        // 创建事件通道
+        val eventChannel = GlobalEventChannel.parentScope(this)
 
-
-        globalEventChannel().subscribeGroupMessages {
+        eventChannel.subscribeGroupMessages {
             case(list) quoteReply { getServerList() }
             case(pingAll) reply { pingALlServer() }
             startsWith(ping) quoteReply {
@@ -82,7 +83,7 @@ object Minecraft : KotlinPlugin(
             }
         }
 
-        globalEventChannel().subscribeAlways<NudgeEvent> {
+        eventChannel.subscribeAlways<NudgeEvent> {
             if (target.id == bot.id) {
                 subject.sendMessage(
                     "Minecraft 插件使用说明:\n" +
@@ -96,10 +97,10 @@ object Minecraft : KotlinPlugin(
         }
         if (!isLoadGeneralPluginInterface) return
         // 监听改名事件
-        globalEventChannel().subscribeAlways<RenameEvent> {
-            logger.info("RenameEvent: pluginId = $pluginId oldName = $oldName newName = $newName")
+        eventChannel.subscribeAlways<GroupRenameEvent> {
+            logger.info("GroupRenameEvent: pluginId = $pluginId oldName = $oldName groupId=$groupId newName = $newName")
             if (pluginId == Minecraft.id) return@subscribeAlways
-            renameServer(oldName, newName,true)
+            renameServer(oldName, newName,groupId,true)
         }
     }
 

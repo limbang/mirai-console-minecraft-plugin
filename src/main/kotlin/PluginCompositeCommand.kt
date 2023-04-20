@@ -11,12 +11,14 @@ package top.limbang.minecraft
 
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
+import net.mamoe.mirai.console.command.UserCommandSender
 import net.mamoe.mirai.console.command.getGroupOrNull
 import net.mamoe.mirai.console.plugin.id
+import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.broadcast
 import top.limbang.minecraft.PluginData.isTps
 import top.limbang.minecraft.PluginData.serverMap
-import top.limbang.mirai.event.RenameEvent
+import top.limbang.mirai.event.GroupRenameEvent
 
 
 /**
@@ -101,19 +103,24 @@ object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
 
     @SubCommand
     @Description("重新命名服务器")
-    suspend fun CommandSender.rename(name: String, newName: String) {
-        if (renameServer(name, newName, false)) sendMessage("原[$name]修改[$newName]成功.")
+    suspend fun UserCommandSender.rename(name: String, newName: String) {
+        if (isNotGroup()) return
+        if (renameServer(name, newName, subject.id, false)) sendMessage("原[$name]修改[$newName]成功.")
         else sendMessage("没有找到[$name]服务器.")
     }
 
-    internal suspend fun renameServer(name: String, newName: String, isEvent: Boolean): Boolean {
+    internal suspend fun UserCommandSender.isNotGroup() = (subject !is Group).also {
+        if (it) sendMessage("请在群内发送命令")
+    }
+
+    internal suspend fun renameServer(name: String, newName: String, groupId: Long, isEvent: Boolean): Boolean {
         val server = serverMap[name]
         return if (server != null) {
             serverMap.remove(name)
             serverMap[newName] = server
             if (Minecraft.isLoadGeneralPluginInterface) {
                 // 发布改名广播
-                if (!isEvent) RenameEvent(Minecraft.id, name, newName).broadcast()
+                if (!isEvent) GroupRenameEvent(groupId, Minecraft.id, name, newName).broadcast()
             }
             true
         } else false
