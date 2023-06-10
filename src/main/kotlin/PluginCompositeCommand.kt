@@ -16,6 +16,7 @@ import net.mamoe.mirai.console.command.getGroupOrNull
 import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.broadcast
+import top.limbang.minecraft.PluginData.isAllToImg
 import top.limbang.minecraft.PluginData.isTps
 import top.limbang.minecraft.PluginData.serverMap
 import top.limbang.mirai.event.GroupRenameEvent
@@ -131,5 +132,12 @@ object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
     suspend fun CommandSender.setTps(value: Boolean) {
         isTps = value
         sendMessage("tps功能:$isTps")
+    }
+
+    @SubCommand
+    @Description("设置All消息转换为图片")
+    suspend fun CommandSender.setAllToImg(value: Boolean) {
+        isAllToImg = value
+        sendMessage("All消息转换为图片功能:$isAllToImg")
     }
 }

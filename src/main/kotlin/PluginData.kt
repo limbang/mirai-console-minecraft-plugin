@@ -55,4 +55,7 @@ object PluginData : AutoSavePluginData("minecraft") {
 
     @ValueDescription("tps查看,默认打开")
     var isTps: Boolean by value(true)
+
+    @ValueDescription("All消息是否是图片,默认 false")
+    var isAllToImg: Boolean by value(false)
 }

@@ -12,9 +12,9 @@ package top.limbang.minecraft.service
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
+import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.events.GroupMessageEvent
-import net.mamoe.mirai.message.data.ForwardMessage
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildForwardMessage
@@ -30,7 +30,10 @@ import top.fanua.doctor.network.handler.oncePacket
 import top.fanua.doctor.plugin.fix.PluginFix
 import top.fanua.doctor.protocol.definition.play.client.JoinGamePacket
 import top.fanua.doctor.protocol.definition.play.client.PlayerPositionAndLookPacket
+import top.limbang.minecraft.PluginData
 import top.limbang.minecraft.PluginData.serverMap
+import top.limbang.minecraft.extension.toImage
+import top.limbang.minecraft.extension.toInput
 import top.limbang.minecraft.service.ImageService.createSubtitlesImage
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -43,10 +46,21 @@ object ServerService {
      *
      * @return
      */
-    fun GroupMessageEvent.pingALlServer(): ForwardMessage {
-        return buildForwardMessage {
+    suspend fun GroupMessageEvent.pingALlServer(): Message {
+        if (PluginData.isAllToImg) {
+            var imgMessage = ""
             serverMap.forEach {
-                bot says (pingServer(it.value.address, it.value.port, it.key) ?: PlainText("[${it.key}]服务器连接失败...\n"))
+                imgMessage += pingServer(it.value.address, it.value.port, it.key)
+                    ?: PlainText("[${it.key}]服务器连接失败...")
+                imgMessage += "\n"
+            }
+            return group.uploadImage(imgMessage.toImage().toInput(),"png")
+        } else {
+            return buildForwardMessage {
+                serverMap.forEach {
+                    bot says (pingServer(it.value.address, it.value.port, it.key)
+                        ?: PlainText("[${it.key}]服务器连接失败...\n"))
+                }
             }
         }
     }
