@@ -22,6 +22,7 @@
 /mc deleteServer <name>    # 删除服务器
 /mc loginInfo    # 查看登陆信息
 /mc setTps <value>    # 设置tps功能启用
+/mc setAllToImg <value>    # 设置All消息转换为图片功能是否启动
 ```
 ### 使用TPS功能
 1. 使用指令添加登陆信息,比如添加遗落之地的皮肤站演示如下
