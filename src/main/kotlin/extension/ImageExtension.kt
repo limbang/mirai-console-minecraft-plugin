@@ -77,7 +77,7 @@ private fun textToImage(text: String): ByteArrayOutputStream {
     //按照换行符分割文本，并设置字体、行距等参数
     val textList = text.split("\n")
     val g2d = BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics()
-    g2d.font = Font("宋体", Font.PLAIN, 20)
+    g2d.font = Font("微软雅黑", Font.PLAIN, 20)
     val fm = g2d.fontMetrics
     val lineHeight = fm.height
 

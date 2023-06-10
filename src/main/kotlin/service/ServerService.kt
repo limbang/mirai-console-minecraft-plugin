@@ -52,9 +52,9 @@ object ServerService {
             serverMap.forEach {
                 imgMessage += pingServer(it.value.address, it.value.port, it.key)
                     ?: PlainText("[${it.key}]服务器连接失败...")
-                imgMessage += "\n"
+                imgMessage += "\n\n\n"
             }
-            return group.uploadImage(imgMessage.toImage().toInput(),"png")
+            return group.uploadImage(imgMessage.trimEnd().toImage().toInput(),"png")
         } else {
             return buildForwardMessage {
                 serverMap.forEach {
