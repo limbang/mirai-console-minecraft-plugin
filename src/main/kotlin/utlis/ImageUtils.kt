@@ -1,23 +1,62 @@
 /*
- * Copyright 2020-2022 limbang and contributors.
+ * Copyright (c) 2023 limbang and contributors.
  *
- * 此源代码的使用受 GNU AFFERO GENERAL PUBLIC LICENSE version 3 许可证的约束, 可以在以下链接找到该许可证.
- * Use of this source code is governed by the GNU AGPLv3 license that can be found through the following link.
- *
- * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
+ * 此源代码的使用受 GNU AGPLv3 许可证的约束，该许可证可在"LICENSE"文件中找到。
+ * Use of this source code is governed by the GNU AGPLv3 license that can be found in the "LICENSE" file.
  */
 
-package top.limbang.minecraft.extension
-
+package top.limbang.minecraft.utlis
 
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import java.util.*
 import javax.imageio.ImageIO
+
+
+/**
+ * 解码 Minecraft 服务器图标
+ *
+ * @param favicon
+ */
+fun decodeFavicon(favicon: String): ByteArray {
+    // 如果图标为空读取默认图标
+    if (favicon.isEmpty()) {
+        val imageStream = object {}::class.java.classLoader.getResourceAsStream("images/defaultFavicon.png")!!
+        return imageStream.use { inputStream ->
+            ByteArrayOutputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+                outputStream.toByteArray()
+            }
+        }
+    }
+    val prefix = "data:image/png;base64,"
+    if (!favicon.startsWith(prefix)) throw RuntimeException("Unknown format")
+    val faviconBase64 = favicon.substring(prefix.length).replace("\n", "")
+    val byte = try {
+        Base64.getDecoder().decode(faviconBase64.toByteArray(StandardCharsets.UTF_8))
+    } catch (e: Exception) {
+        throw RuntimeException("Malformed base64 server icon")
+    }
+    return byte
+}
+
+/**
+ * 编码 Minecraft 服务器图标
+ *
+ * @param byte
+ */
+fun encodeFavicon(byte: ByteArray): String {
+    val prefix = "data:image/png;base64,"
+    val faviconBase64 = Base64.getEncoder().encodeToString(byte)
+    return prefix + faviconBase64
+}
 
 /**
  * ### 添加字幕
@@ -110,4 +149,12 @@ private fun textToImage(text: String): ByteArrayOutputStream {
     val byteArrayOutputStream = ByteArrayOutputStream()
     ImageIO.write(newImage, "png", byteArrayOutputStream)
     return byteArrayOutputStream
+}
+
+/**
+ * ### ByteArrayOutputStream 转 ByteArrayInputStream
+ *
+ */
+fun ByteArrayOutputStream.toInput(): ByteArrayInputStream {
+    return ByteArrayInputStream(this.toByteArray())
 }

@@ -7,7 +7,7 @@
  * https://github.com/limbang/mirai-console-minecraft-plugin/blob/master/LICENSE
  */
 
-package top.limbang.minecraft
+package top.limbang.minecraft.mirai
 
 import kotlinx.serialization.Serializable
 import net.mamoe.mirai.console.data.AutoSavePluginData
@@ -19,30 +19,13 @@ import net.mamoe.mirai.console.data.value
  *
  * - [address] 服务器地址
  * - [port] 服务器端口
- * - [loginInfo] 登陆信息
  */
 @Serializable
-data class ServerAddress(val address: String, val port: Int, val loginInfo: LoginInfo?)
+data class ServerAddress(val address: String, val port: Int)
 
-
-/**
- * ### 登陆信息
- *
- * - [authServerUrl] 验证地址
- * - [sessionServerUrl] 会话地址
- * - [username] 用户名
- * - [password] 密码 base64 加密过的
- */
-@Serializable
-data class LoginInfo(
-    val authServerUrl: String,
-    val sessionServerUrl: String,
-    val username: String,
-    val password: String
-)
 
 enum class CommandName{
-    PING,LIST,TPS,PING_ALL
+    PING,LIST,PING_ALL
 }
 
 /**
@@ -50,11 +33,7 @@ enum class CommandName{
  */
 object PluginData : AutoSavePluginData("minecraft") {
     var serverMap: MutableMap<String, ServerAddress> by value()
-    var loginMap: MutableMap<String, LoginInfo> by value()
     var commandMap: MutableMap<CommandName, String> by value()
-
-    @ValueDescription("tps查看,默认打开")
-    var isTps: Boolean by value(true)
 
     @ValueDescription("All消息是否是图片,默认 false")
     var isAllToImg: Boolean by value(false)
