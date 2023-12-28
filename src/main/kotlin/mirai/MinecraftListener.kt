@@ -22,8 +22,6 @@ import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
 import top.limbang.minecraft.utlis.toImage
 import top.limbang.minecraft.utlis.toInput
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeoutException
 
 
 object MinecraftListener : SimpleListenerHost() {
@@ -104,15 +102,9 @@ object MinecraftListener : SimpleListenerHost() {
         return try {
             val (delay, serverStatus) = ping(address, port)
             serverStatus.toMessage(name, delay)
-        } catch (e: TimeoutException) {
-            Minecraft.logger.error("获取ping信息,等待超时...")
-            return PlainText("获取ping信息,等待超时...")
-        } catch (e: ExecutionException) {
-            Minecraft.logger.error("获取ping信息失败,${e.message}")
-            return PlainText("获取ping信息失败,${e.message}")
-        } catch (e: NullPointerException) {
-            Minecraft.logger.error("服务器正在启动请稍后。。。")
-            return PlainText("服务器正在启动请稍后。。。")
+        } catch (e: Exception) {
+            Minecraft.logger.error(e.stackTraceToString())
+            return PlainText("获取服务器状态失败：${e.message}")
         }
     }
 
