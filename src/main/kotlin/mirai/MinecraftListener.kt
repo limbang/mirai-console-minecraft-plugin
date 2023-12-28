@@ -68,16 +68,19 @@ object MinecraftListener : SimpleListenerHost() {
                     bot says (pingServer(it.value.address, it.value.port, it.key))
                 }
             }
-            launch {group.sendMessage(message)}
+            launch { group.sendMessage(message) }
         }
     }
 
     @EventHandler
-    fun GroupMessageEvent.pingAddress(){
+    fun GroupMessageEvent.pingAddress() {
         val content = message.contentToString()
-        val match = """^!ping\s?(.*)\s([0-9]*)""".toRegex().find(content) ?: return
-        val (address,port) = match.destructured
-        launch {group.sendMessage(pingServer(address, port.toInt(), address))}
+        val match =
+            """^!ping\s?([\da-zA-Z.]*)\s?(?!0)(\d{1,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])?${'$'}""".toRegex()
+                .find(content) ?: return
+        val (address, temPort) = match.destructured
+        val port = if (temPort.isEmpty()) 25565 else temPort.toInt()
+        launch { group.sendMessage(pingServer(address, port, address)) }
     }
 
     @EventHandler
@@ -86,7 +89,7 @@ object MinecraftListener : SimpleListenerHost() {
         val match = """^${PluginData.commandMap[CommandName.PING]}\s?(.*)""".toRegex().find(content) ?: return
         val (name) = match.destructured
         serverMap[name]?.run {
-            launch { group.sendMessage(pingServer(address, port, name) ) }
+            launch { group.sendMessage(pingServer(address, port, name)) }
         }
     }
 
