@@ -107,7 +107,7 @@ object MinecraftListener : SimpleListenerHost() {
             serverStatus.toMessage(name, delay)
         } catch (e: Exception) {
             Minecraft.logger.error(e.stackTraceToString())
-            return PlainText("获取服务器状态失败：${e.message}")
+            return PlainText("[$name]获取服务器状态失败：${e.message}")
         }
     }
 
