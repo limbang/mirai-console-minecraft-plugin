@@ -83,8 +83,7 @@ object MinecraftClient {
         // 解析服务器头像
         val favicon = element.jsonObject["favicon"]?.jsonPrimitive?.content ?: ""
         // 解析描述
-        val description = if (versionNumber == 5) element.jsonObject["description"]!!.jsonPrimitive.content
-        else element.jsonObject["description"]!!.jsonObject["text"]!!.jsonPrimitive.content
+        val description = getDescription(element.jsonObject["description"]!!)
 
         return ServerStatus(
             favicon = favicon,
@@ -95,6 +94,21 @@ object MinecraftClient {
             forgeData = getForgeDate(element, versionNumber)
         )
     }
+
+    /**
+     * 获取服务器描述
+     *
+     */
+    fun getDescription(element: JsonElement): String {
+        // 1.7.10  及以下 描述直接在 description
+        if (element is JsonPrimitive) return element.jsonPrimitive.content
+        // cleanroom 描述在 description.translate
+        if (element.jsonObject.containsKey("translate")) return element.jsonObject["translate"]!!.jsonPrimitive.content
+        // forge 描述在 description.text
+        if (element.jsonObject.containsKey("text")) return element.jsonObject["text"]!!.jsonPrimitive.content
+        return "未解析成功，请联系作者"
+    }
+
 
     /**
      * 根据 minecraft 协议发送数据包
