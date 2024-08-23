@@ -22,6 +22,8 @@ import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
 import top.limbang.minecraft.utlis.toImage
 import top.limbang.minecraft.utlis.toInput
+import java.time.Duration
+import java.time.LocalTime
 
 
 object MinecraftListener : SimpleListenerHost() {
@@ -45,13 +47,23 @@ object MinecraftListener : SimpleListenerHost() {
         launch { group.sendMessage(msg) }
     }
 
+    // 记录上一次 ping 时间
+    private var allLastTime = LocalTime.now()
+
     /**
      * ping 所有服务器
      *
      */
     @EventHandler
-    fun GroupMessageEvent.pingAll() {
+    suspend fun GroupMessageEvent.pingAll() {
         if (message.contentToString() != PluginData.commandMap[CommandName.PING_ALL]) return
+        // 计算两个上一次 ping 时间间隔
+        val duration = Duration.between(allLastTime, LocalTime.now())
+        // 判断是否超过了 10 秒
+        if (duration.seconds <= 10) return else group.sendMessage("请等待 Ping 结果,10 秒内重复发送无效")
+        // 记录当前时间
+        allLastTime = LocalTime.now()
+        // 判断是否用图片回复
         if (PluginData.isAllToImg) {
             var imgMessage = ""
             serverMap.forEach {
