@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.net.Socket
 
 
@@ -33,7 +34,12 @@ object MinecraftClient {
      * @return 延迟 和 服务器状态
      */
     fun ping(host: String, port: Int): Pair<Int, ServerStatus> {
-        Socket(host, port).use { socket ->
+        Socket().use { socket ->
+            // 设置连接超时时间
+            socket.connect(InetSocketAddress(host, port), 100)
+            // 设置读取超时时间
+            socket.soTimeout = 1000
+
             val inStream = MinecraftInputStream(DataInputStream(socket.getInputStream()))
             val outStream = MinecraftOutputStream(DataOutputStream(socket.getOutputStream()))
 
@@ -99,7 +105,7 @@ object MinecraftClient {
      * 获取服务器描述
      *
      */
-    fun getDescription(element: JsonElement): String {
+    private fun getDescription(element: JsonElement): String {
         // 1.7.10  及以下 描述直接在 description
         if (element is JsonPrimitive) return element.jsonPrimitive.content
         // cleanroom 描述在 description.translate
@@ -172,7 +178,7 @@ object MinecraftClient {
         if (id != 0x01) throw IOException("Invalid packetID")
         (System.currentTimeMillis() - inStream.readLong()).toInt()
     } catch (e: Exception) {
-        e.printStackTrace()
+        println(e.localizedMessage)
         -1
     }
 }
