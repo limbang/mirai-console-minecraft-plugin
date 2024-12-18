@@ -128,7 +128,7 @@ object MinecraftListener : SimpleListenerHost() {
             // 构建最终消息内容
             val message = buildString {
                 responses.forEach { append(it) }
-            }.plus("\n").plus(getServerList())
+            }.plus(getServerList())
 
             // 根据配置决定是否将消息转为图片
             if (PluginData.isAllToImg) {
@@ -162,16 +162,16 @@ object MinecraftListener : SimpleListenerHost() {
             serverStatus.toMessage(name, delay)
         } catch (e: EOFException) {
             Minecraft.logger.error("Ping服务器时遇到EOFException [$name] - 地址: $address:$port", e)
-            PlainText("[$name] 获取服务器状态失败：服务器响应数据格式错误")
+            PlainText("[$name] 获取服务器状态失败：服务器响应数据格式错误\n\n")
         } catch (e: IOException) {
             Minecraft.logger.error("Ping服务器时遇到IOException [$name] - 地址: $address:$port", e)
-            PlainText("[$name] 获取服务器状态失败：I/O错误")
+            PlainText("[$name] 获取服务器状态失败：I/O错误\n\n")
         } catch (e: Exception) {
             Minecraft.logger.error(
                 "Ping服务器时遇到未知错误 [$name] - 地址: $address:$port - 错误信息: ${e.message}",
                 e
             )
-            PlainText("[$name] 获取服务器状态失败：${e.message}")
+            PlainText("[$name] 获取服务器状态失败：${e.message}\n\n")
         }
     }
 
