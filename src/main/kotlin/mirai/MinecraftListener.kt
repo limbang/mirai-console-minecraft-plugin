@@ -9,6 +9,9 @@
 
 package top.limbang.minecraft.mirai
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.event.EventHandler
@@ -16,94 +19,134 @@ import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
-import net.mamoe.mirai.message.data.buildForwardMessage
 import top.limbang.minecraft.entity.ServerStatus
 import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
 import top.limbang.minecraft.utlis.toImage
 import top.limbang.minecraft.utlis.toInput
-import java.time.Duration
-import java.time.LocalTime
-
+import java.io.EOFException
+import java.io.IOException
 
 object MinecraftListener : SimpleListenerHost() {
 
     /**
-     * 显示服务器列表
+     * 处理群消息事件，显示服务器列表。
      *
+     * 当消息内容与指定命令匹配时，发送服务器列表到群聊。
      */
     @EventHandler
     fun GroupMessageEvent.list() {
+        // 检查消息内容是否为指定的命令
         if (message.contentToString() != PluginData.commandMap[CommandName.LIST]) return
+
+        // 创建响应消息
         val msg = if (serverMap.isEmpty()) {
             "无服务器列表..."
         } else {
-            var names = ""
-            for ((name, address) in serverMap) {
-                names += "[$name]${address.address}:${address.port}\n"
+            buildString {
+                append("服务器列表为:\n")
+                serverMap.forEach { (name, address) ->
+                    append("[$name]${address.address}:${address.port}\n")
+                }
             }
-            "服务器列表为:\n$names"
         }
+
+        // 异步发送消息
         launch { group.sendMessage(msg) }
     }
 
-    // 记录上一次 ping 时间
-    private var allLastTime = LocalTime.now()
-
     /**
-     * ping 所有服务器
+     * 处理群消息事件，根据指定的命令 ping 服务器地址。
      *
+     * 命令格式为 `!ping <address> <port>`，其中 `<port>` 是可选的。
      */
     @EventHandler
-    suspend fun GroupMessageEvent.pingAll() {
-        if (message.contentToString() != PluginData.commandMap[CommandName.PING_ALL]) return
-        // 计算两个上一次 ping 时间间隔
-        val duration = Duration.between(allLastTime, LocalTime.now())
-        // 判断是否超过了 10 秒
-        if (duration.seconds <= 10) return else group.sendMessage("请等待 Ping 结果,10 秒内重复发送无效")
-        // 记录当前时间
-        allLastTime = LocalTime.now()
-        // 判断是否用图片回复
-        if (PluginData.isAllToImg) {
-            var imgMessage = ""
-            serverMap.forEach {
-                imgMessage += pingServer(it.value.address, it.value.port, it.key)
-                imgMessage += "\n\n\n"
-            }
-            launch {
-                val img = group.uploadImage(imgMessage.trimEnd().toImage().toInput(), "png")
-                group.sendMessage(img)
-            }
-        } else {
-            val message = buildForwardMessage {
-                serverMap.forEach {
-                    bot says (pingServer(it.value.address, it.value.port, it.key))
-                }
-            }
-            launch { group.sendMessage(message) }
-        }
-    }
-
-    @EventHandler
     fun GroupMessageEvent.pingAddress() {
+        // 获取消息内容
         val content = message.contentToString()
-        val match =
+
+        // 匹配命令格式，提取地址和端口号
+        val regex =
             """^!ping\s?([\da-zA-Z.]*)\s?(?!0)(\d{1,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])?${'$'}""".toRegex()
-                .find(content) ?: return
-        val (address, temPort) = match.destructured
-        val port = if (temPort.isEmpty()) 25565 else temPort.toInt()
+        val match = regex.find(content) ?: return
+        val (address, tempPort) = match.destructured
+
+        // 解析端口号，如果未提供，则默认使用 25565
+        val port = tempPort.toIntOrNull() ?: 25565
+
+        // 异步发送 ping 请求结果
         launch { group.sendMessage(pingServer(address, port, address)) }
     }
 
+    /**
+     * 处理群消息事件，执行 ping 操作并返回服务器状态。
+     *
+     * 命令格式为 [CommandName.PING]` <serverName>`，其中 `<serverName>` 是服务器名称。
+     */
     @EventHandler
     fun GroupMessageEvent.ping() {
+        // 获取消息内容
         val content = message.contentToString()
-        val match = """^${PluginData.commandMap[CommandName.PING]}\s?(.*)""".toRegex().find(content) ?: return
+
+        // 匹配命令并提取服务器名称
+        val regex = """^${PluginData.commandMap[CommandName.PING]}\s?(.*)""".toRegex()
+        val match = regex.find(content) ?: return
+
+        // 提取服务器名称
         val (name) = match.destructured
-        serverMap[name]?.run {
-            launch { group.sendMessage(pingServer(address, port, name)) }
+
+        // 查找服务器并发送 ping 请求
+        serverMap[name]?.let { server ->
+            launch {
+                // 执行 ping 操作并获取结果，附加服务器列表
+                val pingResult = pingServer(server.address, server.port, name)
+                val serverList = getServerList()
+                group.sendMessage(pingResult + serverList)
+            }
         }
     }
+
+    /**
+     * 处理群消息事件，执行对所有服务器的 ping 操作并返回结果。
+     *
+     * 命令格式为 [CommandName.PING_ALL]，用于同时 ping 所有服务器。
+     */
+    @EventHandler
+    fun GroupMessageEvent.pingAll() {
+        // 检查消息内容是否为指定命令
+        if (message.contentToString() != PluginData.commandMap[CommandName.PING_ALL]) return
+
+        // 启动一个协程来处理Ping操作。
+        launch {
+            // 使用 async 来并发处理每个服务器的 Ping 请求。
+            val responses = serverMap.map { (name, ports) ->
+                async(Dispatchers.IO) {
+                    pingServer(ports.address, ports.port, name)
+                }
+            }.awaitAll()
+
+            // 构建最终消息内容
+            val message = buildString {
+                responses.forEach { append(it) }
+            }.plus("\n").plus(getServerList())
+
+            // 根据配置决定是否将消息转为图片
+            if (PluginData.isAllToImg) {
+                try {
+                    // 将消息内容转换为图片并发送
+                    val img = group.uploadImage(message.trim().toImage().toInput(), "png")
+                    group.sendMessage(img)
+                } catch (e: Exception) {
+                    // 处理图片生成或发送过程中可能出现的异常
+                    group.sendMessage("生成图片时发生错误：${e.message}")
+                }
+            } else {
+                // 直接发送文本消息
+                group.sendMessage(message)
+            }
+        }
+    }
+
 
     /**
      * ping 服务器
@@ -111,15 +154,24 @@ object MinecraftListener : SimpleListenerHost() {
      * @param address 地址
      * @param port 端口
      * @param name 昵称
-     * @return
+     * @return Message
      */
     private fun pingServer(address: String, port: Int, name: String): Message {
         return try {
             val (delay, serverStatus) = ping(address, port)
             serverStatus.toMessage(name, delay)
+        } catch (e: EOFException) {
+            Minecraft.logger.error("Ping服务器时遇到EOFException [$name] - 地址: $address:$port", e)
+            PlainText("[$name] 获取服务器状态失败：服务器响应数据格式错误")
+        } catch (e: IOException) {
+            Minecraft.logger.error("Ping服务器时遇到IOException [$name] - 地址: $address:$port", e)
+            PlainText("[$name] 获取服务器状态失败：I/O错误")
         } catch (e: Exception) {
-            Minecraft.logger.error(e.stackTraceToString())
-            return PlainText("[$name]获取服务器状态失败：${e.message}")
+            Minecraft.logger.error(
+                "Ping服务器时遇到未知错误 [$name] - 地址: $address:$port - 错误信息: ${e.message}",
+                e
+            )
+            PlainText("[$name] 获取服务器状态失败：${e.message}")
         }
     }
 
@@ -135,10 +187,7 @@ object MinecraftListener : SimpleListenerHost() {
         var sampleName = ""
         playerInfo.players.forEach { sampleName += "[${it.name}] " }
 
-        var serverList = ""
-        serverMap.forEach { serverList += "[${it.key}] " }
-
-        return PlainText(
+        val serverStatus = PlainText(
             "服务器信息如下:\n" +
                     "名   称: $name\n" +
                     "延   迟: $delay ms\n" +
@@ -146,9 +195,19 @@ object MinecraftListener : SimpleListenerHost() {
                     "描   述: ${descriptionColourHandle(description)}\n" +
                     "在线人数: ${playerInfo.playerOnline}/${playerInfo.playerMax}\n" +
                     "$sampleName\n" +
-                    "mod个数: ${forgeData.mods.size}\n" +
-                    "服务器列表:$serverList"
+                    "mod个数: ${forgeData.mods.size}\n\n"
         )
+
+        return serverStatus
+    }
+
+    /**
+     * 获取服务器列表
+     *
+     * @return
+     */
+    private fun getServerList(): String {
+        return "服务器列表: ${serverMap.entries.joinToString(separator = " ") { "[${it.key}]" }}"
     }
 
     /**
