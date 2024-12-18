@@ -16,6 +16,7 @@ import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.broadcast
 import top.limbang.minecraft.mirai.PluginData.isAllToImg
+import top.limbang.minecraft.mirai.PluginData.isNudgeHelp
 import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.mirai.event.GroupRenameEvent
 
@@ -81,5 +82,12 @@ object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
     suspend fun CommandSender.setAllToImg(value: Boolean) {
         isAllToImg = value
         sendMessage("All消息转换为图片功能:$isAllToImg")
+    }
+
+    @SubCommand
+    @Description("设置是否开启戳一戳帮助功能")
+    suspend fun CommandSender.setNudgeHelp(value: Boolean) {
+        isNudgeHelp = value
+        sendMessage("戳一戳帮助功能:$isNudgeHelp")
     }
 }

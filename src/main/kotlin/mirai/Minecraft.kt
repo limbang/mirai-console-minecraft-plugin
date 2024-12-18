@@ -18,13 +18,14 @@ import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.NudgeEvent
 import net.mamoe.mirai.event.registerTo
 import top.limbang.minecraft.mirai.PluginCompositeCommand.renameServer
+import top.limbang.minecraft.mirai.PluginData.isNudgeHelp
 import top.limbang.mirai.event.GroupRenameEvent
 
 object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "Minecraft",
-        version = "1.2.2",
+        version = "1.2.3",
     ) {
         author("limbang")
         info("""Minecraft插件""")
@@ -58,7 +59,7 @@ object Minecraft : KotlinPlugin(
         MinecraftListener.registerTo(eventChannel)
 
         eventChannel.subscribeAlways<NudgeEvent> {
-            if (target.id == bot.id) {
+            if (target.id == bot.id && isNudgeHelp) {
                 subject.sendMessage(
                     "Minecraft 插件使用说明:\n" +
                             "Ping服务器:$ping 服务器名称\n" +

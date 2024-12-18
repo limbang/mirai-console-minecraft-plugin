@@ -37,4 +37,7 @@ object PluginData : AutoSavePluginData("minecraft") {
 
     @ValueDescription("All消息是否是图片,默认 false")
     var isAllToImg: Boolean by value(false)
+
+    @ValueDescription("是否开启戳一戳帮助功能,默认 true")
+    var isNudgeHelp: Boolean by value(true)
 }
