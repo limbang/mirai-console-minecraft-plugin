@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "1.9.0"
+    val kotlinVersion = "2.0.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -17,4 +17,5 @@ repositories {
 dependencies {
     compileOnly("top.limbang:mirai-plugin-general-interface:1.0.2")
     testImplementation("org.slf4j:slf4j-simple:2.0.5")
+    testImplementation(kotlin("test"))
 }
