@@ -25,7 +25,6 @@ import top.limbang.minecraft.mirai.PluginData.isPingToImg
 import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
 import top.limbang.minecraft.utlis.ServerStatusImageGenerator
-import top.limbang.minecraft.utlis.toImage
 import top.limbang.minecraft.utlis.toInput
 import java.io.EOFException
 import java.io.IOException
@@ -221,8 +220,9 @@ object MinecraftListener : SimpleListenerHost() {
      * @return [Message]
      */
     private fun ServerStatus.toMessage(name: String, delay: Int): Message {
-        var sampleName = ""
-        playerInfo.players.forEach { sampleName += "[${it.name}] " }
+        val playerSamples = buildString {
+            playerInfo.players.forEach { append("[${it.name}] ") }
+        }
 
         val serverStatus = PlainText(
             "服务器信息如下:\n" +
@@ -231,7 +231,7 @@ object MinecraftListener : SimpleListenerHost() {
                     "版   本: ${versionName}\n" +
                     "描   述: ${descriptionColourHandle(description)}\n" +
                     "在线人数: ${playerInfo.playerOnline}/${playerInfo.playerMax}\n" +
-                    "$sampleName\n" +
+                    "$playerSamples\n" +
                     "mod个数: ${forgeData.mods.size}\n\n"
         )
 

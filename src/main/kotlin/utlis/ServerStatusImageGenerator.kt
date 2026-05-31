@@ -34,7 +34,6 @@ import kotlin.random.Random
  */
 object ServerStatusImageGenerator {
 
-    private const val PLUGIN_NAME = "Minecraft"
     private const val WIDTH = 760
     private const val FAILURE_HEIGHT = 238
     private const val MAX_PLAYERS = 12
@@ -92,7 +91,6 @@ object ServerStatusImageGenerator {
         panelGlow = Color(255, 255, 255, 16),
         badgeFill = Color(18, 48, 76, 210),
         badgeBorder = Color(94, 222, 255, 120),
-        badgeText = Color(195, 243, 255),
         metaFill = Color(14, 30, 52, 210),
         metaBorder = Color(75, 166, 224, 110),
         iconStroke = Color(110, 224, 255, 100),
@@ -243,7 +241,8 @@ object ServerStatusImageGenerator {
     /**
      * 绘制整张图片的科技风背景。
      *
-     * 背景使用稳定随机种子，只生成抽象线条和圆环，避免同一服务器每次渲染都完全不同。
+     * 背景使用稳定随机种子生成抽象发光圆、短线和圆环，
+     * 避免同一服务器每次渲染都完全不同。
      */
     private fun drawBackground(g: Graphics2D, width: Int, height: Int, seed: Int) {
         g.paint = GradientPaint(
@@ -638,7 +637,7 @@ object ServerStatusImageGenerator {
      * 把多张单服务器卡片纵向拼接成一张总图。
      *
      * 该方法适合批量 ping 或已经拿到多张卡片图片流的场景，
-     * 会自动解码每一张 PNG，并按统一背景拼成一张纵向总图。
+     * 会自动解码每一张 PNG，并直接纵向拼接成一张总图。
      */
     fun composeImageList(images: List<ByteArrayOutputStream>): ByteArrayOutputStream {
         if (images.isEmpty()) {
@@ -680,7 +679,8 @@ object ServerStatusImageGenerator {
     /**
      * 在总图底部绘制轻量摘要信息。
      *
-     * 这里只展示服务器数量和生成时间，便于在群聊中查看图片时快速确认上下文。
+     * 这里只展示服务器数量、生成时间和作者信息，
+     * 便于在群聊中查看图片时快速确认上下文。
      */
     private fun drawOverviewFooter(
         g: Graphics2D,
@@ -782,7 +782,6 @@ object ServerStatusImageGenerator {
         val panelGlow: Color,
         val badgeFill: Color,
         val badgeBorder: Color,
-        val badgeText: Color,
         val metaFill: Color,
         val metaBorder: Color,
         val iconStroke: Color,
