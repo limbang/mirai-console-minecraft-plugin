@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.event.EventHandler
 import net.mamoe.mirai.event.SimpleListenerHost
@@ -20,8 +21,10 @@ import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
 import top.limbang.minecraft.entity.ServerStatus
+import top.limbang.minecraft.mirai.PluginData.isPingToImg
 import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
+import top.limbang.minecraft.utlis.ServerStatusImageGenerator
 import top.limbang.minecraft.utlis.toImage
 import top.limbang.minecraft.utlis.toInput
 import java.io.EOFException
@@ -75,7 +78,13 @@ object MinecraftListener : SimpleListenerHost() {
         val port = tempPort.toIntOrNull() ?: 25565
 
         // 异步发送 ping 请求结果
-        launch { group.sendMessage(pingServer(address, port, address)) }
+        launch {
+            if (isPingToImg) {
+                group.sendMessage(pingServerImage(address, port, address))
+            } else {
+                group.sendMessage(pingServer(address, port, address))
+            }
+        }
     }
 
     /**
@@ -98,10 +107,14 @@ object MinecraftListener : SimpleListenerHost() {
         // 查找服务器并发送 ping 请求
         serverMap[name]?.let { server ->
             launch {
-                // 执行 ping 操作并获取结果，附加服务器列表
-                val pingResult = pingServer(server.address, server.port, name)
-                val serverList = getServerList()
-                group.sendMessage(pingResult + serverList)
+                if (isPingToImg) {
+                    group.sendMessage(pingServerImage(server.address, server.port, name))
+                } else {
+                    // 执行 ping 操作并获取结果，附加服务器列表
+                    val pingResult = pingServer(server.address, server.port, name)
+                    val serverList = getServerList()
+                    group.sendMessage(pingResult + serverList)
+                }
             }
         }
     }
@@ -118,6 +131,27 @@ object MinecraftListener : SimpleListenerHost() {
 
         // 启动一个协程来处理Ping操作。
         launch {
+            if (PluginData.isAllToImg) {
+                if (serverMap.isEmpty()) {
+                    group.sendMessage("无服务器列表...")
+                    return@launch
+                }
+
+                val output = withContext(Dispatchers.IO) {
+                    ServerStatusImageGenerator.generateFromPingList(
+                        serverMap.map { (name, server) ->
+                            ServerStatusImageGenerator.PingTarget(
+                                serverName = name,
+                                host = server.address,
+                                port = server.port
+                            )
+                        }
+                    )
+                }
+                group.sendMessage(group.uploadImage(output.toInput(), "png"))
+                return@launch
+            }
+
             // 使用 async 来并发处理每个服务器的 Ping 请求。
             val responses = serverMap.map { (name, ports) ->
                 async(Dispatchers.IO) {
@@ -130,20 +164,8 @@ object MinecraftListener : SimpleListenerHost() {
                 responses.forEach { append(it) }
             }.plus(getServerList())
 
-            // 根据配置决定是否将消息转为图片
-            if (PluginData.isAllToImg) {
-                try {
-                    // 将消息内容转换为图片并发送
-                    val img = group.uploadImage(message.trim().toImage().toInput(), "png")
-                    group.sendMessage(img)
-                } catch (e: Exception) {
-                    // 处理图片生成或发送过程中可能出现的异常
-                    group.sendMessage("生成图片时发生错误：${e.message}")
-                }
-            } else {
-                // 直接发送文本消息
-                group.sendMessage(message)
-            }
+            // 直接发送文本消息
+            group.sendMessage(message)
         }
     }
 
@@ -173,6 +195,21 @@ object MinecraftListener : SimpleListenerHost() {
             )
             PlainText("[$name] 获取服务器状态失败：${e.message}\n\n")
         }
+    }
+
+    /**
+     * ping 服务器并把结果转换为图片消息。
+     *
+     * 该方法直接复用 [ServerStatusImageGenerator] 的图片生成能力，
+     * 成功时返回状态图，失败时返回连接失败图。
+     */
+    private suspend fun GroupMessageEvent.pingServerImage(address: String, port: Int, name: String): Message {
+        val output = ServerStatusImageGenerator.generateFromPing(
+            serverName = name,
+            host = address,
+            port = port
+        )
+        return group.uploadImage(output.toInput(), "png")
     }
 
     /**
