@@ -115,14 +115,20 @@ internal fun getForgeDate(element: JsonElement, versionNumber: Int): ForgeData {
     val fmlNetworkVersion = when {
         forgeDataObject != null && versionNumber > 383 -> forgeDataObject.jsonObject["fmlNetworkVersion"]!!.jsonPrimitive.int
         element.jsonObject["modinfo"] != null && versionNumber <= 340 -> 1
+        element.jsonObject["isModded"]?.jsonPrimitive?.boolean ?: false -> 4
         else -> 0
     }
     return when (fmlNetworkVersion) {
+        4 -> neoForge(versionNumber)
         3 -> forgeNetwork3(forgeDataObject!!)
         2 -> forgeNetwork2(forgeDataObject!!)
         1 -> forgeNetwork1(element.jsonObject["modinfo"]!!)
         else -> ForgeData(-1, false, listOf(), listOf())
     }
+}
+
+private fun neoForge(versionNumber: Int): ForgeData{
+    return ForgeData(4, false, listOf(), listOf())
 }
 
 /**
