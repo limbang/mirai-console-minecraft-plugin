@@ -17,6 +17,8 @@ import java.awt.geom.Ellipse2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.imageio.ImageIO
 import kotlin.random.Random
 
@@ -32,6 +34,7 @@ import kotlin.random.Random
  */
 object ServerStatusImageGenerator {
 
+    private const val PLUGIN_NAME = "Minecraft"
     private const val WIDTH = 760
     private const val FAILURE_HEIGHT = 238
     private const val MAX_PLAYERS = 12
@@ -50,6 +53,7 @@ object ServerStatusImageGenerator {
     private const val PLAYER_BOTTOM_PADDING = 14
     private const val DEFAULT_HEIGHT = 340
     private const val OVERVIEW_GAP = 0
+    private const val OVERVIEW_FOOTER_HEIGHT = 42
 
     private val titleFont = Font("Dialog", Font.BOLD, 28)
     private val bodyFont = Font("Dialog", Font.PLAIN, 15)
@@ -57,6 +61,8 @@ object ServerStatusImageGenerator {
     private val labelFont = Font("Dialog", Font.PLAIN, 13)
     private val chipFont = Font("Dialog", Font.PLAIN, 14)
     private val pingFont = Font("Dialog", Font.BOLD, 20)
+    private val footerFont = Font("Dialog", Font.PLAIN, 13)
+    private val overviewTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     private val mcColors = mapOf(
         '0' to Color(0, 0, 0),
@@ -649,8 +655,11 @@ object ServerStatusImageGenerator {
         }
 
         val width = decodedImages.maxOf { image -> image.width }
-        val height = decodedImages.sumOf { image -> image.height } + OVERVIEW_GAP * (decodedImages.size - 1)
+        val height = decodedImages.sumOf { image -> image.height } + OVERVIEW_GAP * (decodedImages.size - 1) + OVERVIEW_FOOTER_HEIGHT
         val overviewImage = createImage(width, height)
+        val generatedAt = LocalDateTime.now().format(overviewTimeFormatter)
+        val footerLeftText = "Servers: ${decodedImages.size}   Generated: $generatedAt"
+        val footerRightText = "by: limbang"
 
         overviewImage.withGraphics { g ->
             g.applyImageQuality()
@@ -661,9 +670,34 @@ object ServerStatusImageGenerator {
                 g.drawImage(cardImage, cardX, currentY, null)
                 currentY += cardImage.height + OVERVIEW_GAP
             }
+
+            drawOverviewFooter(g, footerLeftText, footerRightText, width, height)
         }
 
         return overviewImage.toOutputStream("png")
+    }
+
+    /**
+     * 在总图底部绘制轻量摘要信息。
+     *
+     * 这里只展示服务器数量和生成时间，便于在群聊中查看图片时快速确认上下文。
+     */
+    private fun drawOverviewFooter(
+        g: Graphics2D,
+        footerLeftText: String,
+        footerRightText: String,
+        width: Int,
+        height: Int
+    ) {
+        val footerTop = height - OVERVIEW_FOOTER_HEIGHT
+        g.color = Color(7, 15, 30, 210)
+        g.fillRect(0, footerTop, width, OVERVIEW_FOOTER_HEIGHT)
+        g.color = style.panelStroke
+        g.fillRect(0, footerTop, width, 1)
+        g.font = footerFont
+        drawStyledText(g, footerLeftText, 18, footerTop + 25, style.secondaryText)
+        val footerRightX = width - 18 - g.fontMetrics.stringWidth(footerRightText)
+        drawStyledText(g, footerRightText, footerRightX, footerTop + 25, style.secondaryText)
     }
 
     /**
