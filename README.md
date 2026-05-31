@@ -28,6 +28,7 @@
 /mc deleteServer <name>                  # 删除服务器
 /mc rename <name> <newName>              # 重命名服务器
 /mc setAllToImg <value>                  # 设置 ping 全部服务器时是否发送总览图片
+/mc setAllImageCombined <value>          # 设置 all 图片模式下是合成一张还是逐张发送
 /mc setPingToImg <value>                 # 设置单服 ping 时是否发送状态图片
 /mc setNudgeHelp <value>                 # 设置是否开启戳一戳帮助
 ```
@@ -63,7 +64,8 @@ name 可设置如下
 - `isAllToImg = false`
   - `ping all` 返回文本汇总
 - `isAllToImg = true`
-  - `ping all` 返回多张服务器状态卡拼接后的总览图片
+  - `isAllImageCombined = true` 时，`ping all` 返回多张服务器状态卡拼接后的总览图片
+  - `isAllImageCombined = false` 时，`ping all` 按服务器顺序逐张发送状态图片
 
 ## 配置项
 
@@ -72,7 +74,9 @@ name 可设置如下
 - `commandMap`
   - 群消息触发命令映射
 - `isAllToImg`
-  - 是否把 `ping all` 结果发送为总览图片，默认 `true`
+  - 是否把 `ping all` 结果发送为图片，默认 `true`
+- `isAllImageCombined`
+  - `ping all` 使用图片模式时，是否把结果合成为一张图，默认 `true`
 - `isPingToImg`
   - 是否把单服 `ping` 结果发送为状态图片，默认 `false`
 - `isNudgeHelp`

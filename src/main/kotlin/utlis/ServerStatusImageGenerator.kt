@@ -189,6 +189,21 @@ object ServerStatusImageGenerator {
     }
 
     /**
+     * 对一组服务器目标逐个执行 ping，并分别返回对应的状态卡片。
+     *
+     * 单个目标 ping 失败时不会中断整体流程，而是自动返回对应的失败卡片，
+     * 便于调用方按顺序逐张发送图片。
+     *
+     * @param targets 待 ping 的服务器列表
+     * @return 与目标列表顺序一致的 PNG 图片输出流列表
+     */
+    fun generateImageListFromPingTargets(targets: List<PingTarget>): List<ByteArrayOutputStream> {
+        return targets.map { target ->
+            generateFromPing(target.serverName, target.host, target.port)
+        }
+    }
+
+    /**
      * 把已有的服务器状态数据渲染为 PNG 图片流。
      *
      * 该入口适合已经完成 ping 的调用方，避免重复网络请求。

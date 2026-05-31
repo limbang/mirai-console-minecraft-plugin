@@ -37,6 +37,8 @@ object PluginData : AutoSavePluginData("minecraft") {
 
     @ValueDescription("All消息是否是图片,默认 true")
     var isAllToImg: Boolean by value(true)
+    @ValueDescription("All消息转换为图片时是否合成为一张图,默认 true")
+    var isAllImageCombined: Boolean by value(true)
     @ValueDescription("Ping消息是否是图片,默认 false")
     var isPingToImg: Boolean by value(false)
 

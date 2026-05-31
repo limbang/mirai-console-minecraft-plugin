@@ -9,18 +9,16 @@
 
 package top.limbang.minecraft.mirai
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.event.EventHandler
 import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.data.buildMessageChain
 import top.limbang.minecraft.entity.ServerStatus
+import top.limbang.minecraft.mirai.PluginData.isAllImageCombined
 import top.limbang.minecraft.mirai.PluginData.isPingToImg
 import top.limbang.minecraft.mirai.PluginData.serverMap
 import top.limbang.minecraft.ping
@@ -136,18 +134,31 @@ object MinecraftListener : SimpleListenerHost() {
                     return@launch
                 }
 
-                val output = withContext(Dispatchers.IO) {
-                    ServerStatusImageGenerator.generateFromPingList(
-                        serverMap.map { (name, server) ->
-                            ServerStatusImageGenerator.PingTarget(
-                                serverName = name,
-                                host = server.address,
-                                port = server.port
-                            )
-                        }
+                val targets = serverMap.map { (name, server) ->
+                    ServerStatusImageGenerator.PingTarget(
+                        serverName = name,
+                        host = server.address,
+                        port = server.port
                     )
                 }
-                group.sendMessage(group.uploadImage(output.toInput(), "png"))
+
+                // 判断 all 图片是否需要合并
+                if (isAllImageCombined) {
+                    val output = withContext(Dispatchers.IO) {
+                        ServerStatusImageGenerator.generateFromPingList(targets)
+                    }
+                    group.sendMessage(group.uploadImage(output.toInput(), "png"))
+                } else {
+                    val outputs = withContext(Dispatchers.IO) {
+                        ServerStatusImageGenerator.generateImageListFromPingTargets(targets)
+                    }
+                    val message = buildMessageChain{
+                        outputs.forEach { output ->
+                            append(group.uploadImage(output.toInput(), "png"))
+                        }
+                    }
+                    group.sendMessage(message)
+                }
                 return@launch
             }
 

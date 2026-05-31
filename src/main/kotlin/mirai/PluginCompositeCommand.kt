@@ -16,6 +16,7 @@ import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.broadcast
 import top.limbang.minecraft.mirai.PluginData.isAllToImg
+import top.limbang.minecraft.mirai.PluginData.isAllImageCombined
 import top.limbang.minecraft.mirai.PluginData.isNudgeHelp
 import top.limbang.minecraft.mirai.PluginData.isPingToImg
 import top.limbang.minecraft.mirai.PluginData.serverMap
@@ -83,6 +84,13 @@ object PluginCompositeCommand : CompositeCommand(Minecraft, "mc") {
     suspend fun CommandSender.setAllToImg(value: Boolean) {
         isAllToImg = value
         sendMessage("All消息转换为图片功能:$isAllToImg")
+    }
+
+    @SubCommand
+    @Description("设置All图片消息是否合成为一张图")
+    suspend fun CommandSender.setAllImageCombined(value: Boolean) {
+        isAllImageCombined = value
+        sendMessage("All图片消息合并发送功能:$isAllImageCombined")
     }
 
     @SubCommand
