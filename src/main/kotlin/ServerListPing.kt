@@ -38,7 +38,7 @@ object MinecraftClient {
             // 设置连接超时时间
             socket.connect(InetSocketAddress(host, port), 100)
             // 设置读取超时时间
-            socket.soTimeout = 1000
+            socket.soTimeout = 1500
 
             val inStream = MinecraftInputStream(DataInputStream(socket.getInputStream()))
             val outStream = MinecraftOutputStream(DataOutputStream(socket.getOutputStream()))
