@@ -25,7 +25,7 @@ object Minecraft : KotlinPlugin(
     JvmPluginDescription(
         id = "top.limbang.minecraft",
         name = "Minecraft",
-        version = "1.2.3",
+        version = "1.3.0",
     ) {
         author("limbang")
         info("""Minecraft插件""")
